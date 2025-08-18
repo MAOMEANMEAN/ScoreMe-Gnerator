@@ -7,8 +7,8 @@
 #include <fstream>
 
 // Static member definitions
-const std::string Admin::DEFAULT_ADMIN_USERNAME = "admin";
-const std::string Admin::DEFAULT_ADMIN_PASSWORD = "admin123";
+const std::string Admin::DEFAULT_ADMIN_USERNAME = "scoremepro";
+const std::string Admin::DEFAULT_ADMIN_PASSWORD = "prome123";
 
 // Constructors
 Admin::Admin() : Person(DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, "Administrator") {}
@@ -32,7 +32,6 @@ bool Admin::login() {
     }
 }
 
-// FIXED: Improved showMenu() method
 void Admin::showMenu() {
     MenuUtils::clearScreen();
     MenuUtils::printHeader("ADMIN DASHBOARD");
@@ -60,8 +59,8 @@ void Admin::showMenu() {
             break;
         case 3:
             MenuUtils::printInfo("Default Admin Credentials:");
-            MenuUtils::printInfo("Username: admin");
-            MenuUtils::printInfo("Password: admin123");
+            MenuUtils::printInfo("Username: scoremepro");
+            MenuUtils::printInfo("Password: prome123");
             break;
         case 4:
             MenuUtils::printInfo("Signing out from admin dashboard...");
@@ -197,7 +196,6 @@ void Admin::addNewStudent(std::vector<Student>& students) {
         return;
     }
     
-    // ADD THESE LINES FOR LOGIN CREDENTIALS
     std::string username = MenuUtils::getStringInput("Username for login: ");
     std::string password = MenuUtils::getStringInput("Password for login: ");
     
@@ -218,17 +216,16 @@ void Admin::addNewStudent(std::vector<Student>& students) {
         }
     }
     
-    // CREATE STUDENT WITH LOGIN CREDENTIALS
+    // Create student with login credentials
     students.emplace_back(username, password, studentId, name, age, gender, dob, email, scores);
     MenuUtils::printSuccess("Student added successfully!");
     MenuUtils::printInfo("Login credentials - Username: " + username + ", Password: " + password);
     
-    // Save updated data to Excel
+    // Save updated data to Excel immediately
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
         MenuUtils::printInfo("Data saved to Excel file.");
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         MenuUtils::printWarning("Student added but failed to save to Excel: " + std::string(e.what()));
     }
 }
@@ -311,8 +308,7 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
         try {
             ExcelUtils::writeExcel("data/students.xlsx", students);
             MenuUtils::printInfo("Data saved to Excel file.");
-        }
-        catch (const std::exception& e) {
+        } catch (const std::exception& e) {
             MenuUtils::printWarning("Student updated but failed to save to Excel: " + std::string(e.what()));
         }
     }
@@ -338,8 +334,7 @@ void Admin::deleteStudent(std::vector<Student>& students) {
             try {
                 ExcelUtils::writeExcel("data/students.xlsx", students);
                 MenuUtils::printInfo("Data saved to Excel file.");
-            }
-            catch (const std::exception& e) {
+            } catch (const std::exception& e) {
                 MenuUtils::printWarning("Student deleted but failed to save to Excel: " + std::string(e.what()));
             }
         } else {
@@ -410,16 +405,12 @@ void Admin::sortStudentsByScore(std::vector<Student>& students) {
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
         MenuUtils::printInfo("Sorted data saved to Excel file.");
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         MenuUtils::printWarning("Students sorted but failed to save to Excel: " + std::string(e.what()));
     }
 }
 
-// Data management methods
-// Add these updated methods to your Admin.cpp file
-
-// Data management methods - UPDATED VERSIONS
+// Data management methods - Updated to use only XLSX
 void Admin::importExcelData(std::vector<Student>& students, const std::string& filename) {
     MenuUtils::printHeader("IMPORT EXCEL DATA");
     
@@ -447,16 +438,14 @@ void Admin::importExcelData(std::vector<Student>& students, const std::string& f
             MenuUtils::printError("Failed to import data from " + filename);
             MenuUtils::printInfo("Excel file has been created with current data for future use.");
         }
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         MenuUtils::printError("Import error: " + std::string(e.what()));
         MenuUtils::printInfo("Creating Excel file with current data...");
         
         try {
             ExcelUtils::writeExcel(filename, students);
             MenuUtils::printSuccess("Excel file created successfully!");
-        }
-        catch (...) {
+        } catch (...) {
             MenuUtils::printError("Failed to create Excel file.");
         }
     }
@@ -497,19 +486,8 @@ void Admin::exportData(const std::vector<Student>& students, const std::string& 
         MenuUtils::printInfo("- Passing students (50+): " + std::to_string(passingStudents));
         MenuUtils::printInfo("- Files created: " + filename + ", " + regularFilename);
         
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         MenuUtils::printError("Failed to export data: " + std::string(e.what()));
-        
-        // Try CSV backup
-        try {
-            std::string csvFilename = filename.substr(0, filename.find_last_of('.')) + "_backup.csv";
-            ExcelUtils::writeCSVReport(csvFilename, students);
-            MenuUtils::printInfo("CSV backup created instead: " + csvFilename);
-        }
-        catch (...) {
-            MenuUtils::printError("Failed to create any export files.");
-        }
     }
 }
 
@@ -533,19 +511,8 @@ void Admin::backupData(const std::vector<Student>& students) {
         MenuUtils::printInfo("Backup files created in data/backups/ and data/ directories");
         MenuUtils::printInfo("Total students backed up: " + std::to_string(students.size()));
         
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         MenuUtils::printError("Failed to create backup: " + std::string(e.what()));
-        
-        // Try CSV backup as fallback
-        try {
-            std::string csvBackup = "data/students_backup.csv";
-            ExcelUtils::writeCSVBackup(csvBackup, students);
-            MenuUtils::printInfo("CSV backup created as fallback: " + csvBackup);
-        }
-        catch (...) {
-            MenuUtils::printError("Failed to create any backup files.");
-        }
     }
 }
 

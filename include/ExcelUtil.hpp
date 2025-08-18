@@ -32,10 +32,6 @@ public:
     // Excel column headers
     static std::vector<std::string> getExcelHeaders();
     
-    // CSV backup methods (for when Excel fails)
-    static void writeCSVBackup(const std::string& filename, const std::vector<Student>& students);
-    static void writeCSVReport(const std::string& filename, const std::vector<Student>& students);
-    
 private:
     // Helper methods for Excel formatting
     static void formatExcelHeader(xlnt::worksheet& ws);

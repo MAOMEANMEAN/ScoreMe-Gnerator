@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <algorithm>  // ADDED: This header is needed for std::transform
 #include "Student.hpp"
 #include "Admin.hpp"
 #include "Person.hpp"
@@ -17,40 +18,160 @@ private:
     
 public:
     ScoreMEApp() {
-        // Initialize with sample student data for login testing
-        initializeStudentAccounts();
+        // FIXED: Load existing data first, create sample only if no data exists
+        loadExistingDataOrCreateSample();
+    }
+    
+    void loadExistingDataOrCreateSample() {
+        try {
+            // First, try to load existing Excel data
+            if (ExcelUtils::fileExists("data/students.xlsx")) {
+                MenuUtils::printInfo("Loading existing student data...");
+                registeredStudents = ExcelUtils::readExcelToVector("data/students.xlsx");
+                
+                // CRITICAL FIX: Only set up credentials for students who TRULY don't have them
+                // This now properly preserves admin-created credentials because Excel stores them!
+                setupMissingStudentLoginCredentials();
+                
+                MenuUtils::printSuccess("Loaded " + to_string(registeredStudents.size()) + " students from Excel file!");
+            } else {
+                // If no file exists, create sample data
+                MenuUtils::printInfo("No existing data found. Creating sample data...");
+                initializeStudentAccounts();
+                createSampleExcelFiles();
+            }
+        } catch (const exception& e) {
+            MenuUtils::printError("Error loading data: " + string(e.what()));
+            MenuUtils::printInfo("Creating fresh sample data...");
+            initializeStudentAccounts();
+        }
+    }
+    
+    // COMPLETELY REWRITTEN: This method now properly handles credentials that are saved/loaded from Excel
+    void setupMissingStudentLoginCredentials() {
+        bool hasChanges = false;
         
-        // Create sample Excel files with data
-        createSampleExcelFiles();
+        for (auto& student : registeredStudents) {
+            string currentUsername = student.getUsername();
+            string currentPassword = student.getPassword();
+            
+            // CRITICAL FIX: Since Excel now properly stores and loads credentials,
+            // admin-created credentials (like "chopper"/"chopper123") will be preserved!
+            // Only set default credentials if BOTH username AND password are completely empty
+            if (currentUsername.empty() && currentPassword.empty()) {
+                string name = student.getName();
+                
+                // Only set default credentials for known sample students WITHOUT any credentials
+                if (name == "Theara Lavy") {
+                    student.setUsername("theara lavy");
+                    student.setPassword("lavy123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Sarun Lisa") {
+                    student.setUsername("sarun lisa");
+                    student.setPassword("lisa123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Nai Sophanny") {
+                    student.setUsername("nai sophanny");
+                    student.setPassword("sophanny123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Phong Nodiya") {
+                    student.setUsername("phong nodiya");
+                    student.setPassword("nodiya123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Sarah Davis") {
+                    student.setUsername("sarah davis");
+                    student.setPassword("sarah123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Chan Dara") {
+                    student.setUsername("chan dara");
+                    student.setPassword("dara123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Nat Sitha") {
+                    student.setUsername("nat sitha");
+                    student.setPassword("sitha123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Tep Thida") {
+                    student.setUsername("tep thida");
+                    student.setPassword("thida123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Rong Ravuth") {
+                    student.setUsername("rong ravuth");
+                    student.setPassword("ravuth123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else if (name == "Phy Sovanna") {
+                    student.setUsername("phy sovanna");
+                    student.setPassword("sovanna123");
+                    hasChanges = true;
+                    MenuUtils::printInfo("Set default login for " + name);
+                } else {
+                    // For completely new students without any credentials, create based on first name
+                    string firstName = name.substr(0, name.find(' '));
+                    if (firstName.empty()) firstName = name;
+                    transform(firstName.begin(), firstName.end(), firstName.begin(), ::tolower);
+                    student.setUsername(firstName);
+                    student.setPassword(firstName + "123");
+                    hasChanges = true;
+                    
+                    MenuUtils::printInfo("Auto-generated login for " + name + 
+                                       " - Username: " + firstName + ", Password: " + firstName + "123");
+                }
+            } else {
+                // CRITICAL SUCCESS: Admin-created credentials like "chopper"/"chopper123" 
+                // are now properly loaded from Excel and preserved!
+                MenuUtils::printInfo("Preserving existing credentials for " + student.getName() + 
+                                   " (Username: " + currentUsername + ")");
+            }
+        }
+        
+        // Save changes only if we set new credentials for students who had none
+        if (hasChanges) {
+            try {
+                ExcelUtils::writeExcel("data/students.xlsx", registeredStudents);
+                MenuUtils::printInfo("Updated login credentials saved (admin-set credentials preserved).");
+            } catch (const exception& e) {
+                MenuUtils::printWarning("Could not save credential updates: " + string(e.what()));
+            }
+        } else {
+            MenuUtils::printInfo("All students already have credentials - no changes made.");
+        }
     }
     
     void initializeStudentAccounts() {
-        // Create some student accounts with login credentials
+        // Create sample student data only when no existing data
         registeredStudents = Student::createSampleData();
         
-        // Set login credentials for first few students for testing
-        if (registeredStudents.size() >= 3) {
-            registeredStudents[0].setUsername("john.smith");
-            registeredStudents[0].setPassword("pass123");
-            
-            registeredStudents[1].setUsername("emily.johnson");
-            registeredStudents[1].setPassword("pass456");
-            
-            registeredStudents[2].setUsername("michael.brown");
-            registeredStudents[2].setPassword("pass789");
-        }
+        // Set login credentials for sample students only
+        setupMissingStudentLoginCredentials();
     }
     
     void createSampleExcelFiles() {
         try {
-            // Create sample Excel files with student data
+            // Create sample Excel files with student data (XLSX only)
             ExcelUtils::writeExcel("data/students.xlsx", registeredStudents);
             ExcelUtils::writeExcel("data/persons.xlsx", registeredStudents);
             
-            cout << "Sample Excel files created successfully!" << endl;
+            MenuUtils::printSuccess("Sample Excel files created successfully!");
+        } catch (const exception& e) {
+            MenuUtils::printError("Error creating sample Excel files: " + string(e.what()));
         }
-        catch (const exception& e) {
-            cerr << "Error creating sample Excel files: " << e.what() << endl;
+    }
+    
+    // ADDED: Method to save current data before shutdown
+    void saveDataOnExit() {
+        try {
+            ExcelUtils::writeExcel("data/students.xlsx", registeredStudents);
+            MenuUtils::printSuccess("All data saved successfully!");
+        } catch (const exception& e) {
+            MenuUtils::printError("Error saving data: " + string(e.what()));
         }
     }
     
@@ -71,7 +192,12 @@ public:
                     handleStudentLogin();
                     break;
                 case 3:
-                    MenuUtils::printInfo("Thank you for using ScoreME Generator! Goodbye! 👋");
+                    // Save data before exit
+                    MenuUtils::printInfo("Saving all data...");
+                    saveDataOnExit();
+                    
+                    // Show enhanced thank you message
+                    MenuUtils::printThankYou();
                     break;
             }
             
@@ -87,8 +213,14 @@ private:
         MenuUtils::clearScreen();
         
         if (admin.login()) {
-            // FIXED: Use showMenuWithData() method instead of showMenu()
+            // Show loading animation before entering admin dashboard
+            MenuUtils::showLoadingAnimation("Loading Admin Dashboard", 2000);
+            
+            // Use showMenuWithData() method instead of showMenu()
             admin.showMenuWithData(registeredStudents);
+            
+            // CRITICAL SUCCESS: Admin-set credentials are now automatically saved to Excel
+            // and will be preserved when the application restarts!
         } else {
             MenuUtils::printError("Admin login failed!");
         }
@@ -113,9 +245,24 @@ private:
         if (loggedInStudent) {
             MenuUtils::printSuccess("Login successful! Welcome, " + loggedInStudent->getName() + "!");
             MenuUtils::pauseScreen();
+            
+            // Show loading animation before entering student dashboard
+            MenuUtils::showLoadingAnimation("Loading Student Dashboard", 2000);
+            
             loggedInStudent->showMenu();
         } else {
             MenuUtils::printError("Invalid student credentials!");
+            MenuUtils::printError("Please check your username and password.");
+            MenuUtils::printInfo("If you forgot your credentials, please contact the administrator.");
+            
+            // DEBUG INFO: Show what credentials are actually stored for troubleshooting
+            MenuUtils::printInfo("\nDEBUG: Available student accounts:");
+            for (const auto& student : registeredStudents) {
+                if (!student.getUsername().empty()) {
+                    MenuUtils::printInfo("Student: " + student.getName() + 
+                                       " | Username: " + student.getUsername());
+                }
+            }
         }
     }
 };
@@ -126,10 +273,9 @@ void createSampleDataFiles() {
         auto students = Student::createSampleData();
         ExcelUtils::writeExcel("data/students.xlsx", students);
         ExcelUtils::writeExcel("data/persons.xlsx", students);
-        cout << "Sample Excel files created successfully in data/ directory!" << endl;
-    }
-    catch (const exception& e) {
-        cerr << "Error creating sample files: " << e.what() << endl;
+        MenuUtils::printSuccess("Sample Excel files created successfully in data/ directory!");
+    } catch (const exception& e) {
+        MenuUtils::printError("Error creating sample files: " + string(e.what()));
     }
 }
 

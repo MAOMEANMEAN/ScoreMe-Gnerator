@@ -37,25 +37,13 @@ void ExcelUtils::writeExcel(const std::string& filename, const std::vector<Stude
             writeStudentToExcel(ws, students[i], static_cast<int>(i + 2));
         }
 
-        // Save with error handling
-        try {
-            wb.save(filename);
-            cout << "✅ Excel file '" << filename << "' created successfully!" << endl;
-        } catch (const xlnt::exception& e) {
-            cerr << "⚠️ Excel save warning: " << e.what() << endl;
-            cerr << "📝 Note: Data processing completed, but file save encountered issues." << endl;
-        }
-    }
-    catch (const exception& e) {
-        cerr << "❌ Error writing Excel file: " << e.what() << endl;
+        // Save Excel file
+        wb.save(filename);
+        MenuUtils::printSuccess("Excel file '" + filename + "' created successfully!");
         
-        // Try alternative approach - create a simple CSV instead
-        try {
-            string csvFilename = filename.substr(0, filename.find_last_of('.')) + "_backup.csv";
-            writeCSVBackup(csvFilename, students);
-        } catch (...) {
-            cerr << "❌ Failed to create backup CSV as well." << endl;
-        }
+    } catch (const exception& e) {
+        MenuUtils::printError("Error writing Excel file: " + string(e.what()));
+        throw; // Re-throw exception for caller to handle
     }
 }
 
@@ -64,10 +52,10 @@ std::vector<Student> ExcelUtils::readExcelToVector(const std::string& filename) 
     
     try {
         if (!fileExists(filename)) {
-            cerr << "📁 File '" << filename << "' does not exist!" << endl;
+            MenuUtils::printWarning("File '" + filename + "' does not exist!");
             
-            // Try to create the file with sample data
-            cout << "🔄 Creating sample file with default data..." << endl;
+            // Create the file with sample data
+            MenuUtils::printInfo("Creating sample file with default data...");
             auto sampleStudents = Student::createSampleData();
             writeExcel(filename, sampleStudents);
             return sampleStudents;
@@ -79,7 +67,7 @@ std::vector<Student> ExcelUtils::readExcelToVector(const std::string& filename) 
 
         // Check if worksheet has data
         if (ws.highest_row() <= 1) {
-            cout << "📄 Excel file is empty, creating sample data..." << endl;
+            MenuUtils::printInfo("Excel file is empty, creating sample data...");
             auto sampleStudents = Student::createSampleData();
             writeExcel(filename, sampleStudents);
             return sampleStudents;
@@ -90,18 +78,17 @@ std::vector<Student> ExcelUtils::readExcelToVector(const std::string& filename) 
             try {
                 Student student = readStudentFromExcel(ws, rowNum);
                 students.push_back(student);
-            }
-            catch (const exception& e) {
-                cerr << "⚠️ Error reading row " << rowNum << ": " << e.what() << endl;
+            } catch (const exception& e) {
+                MenuUtils::printWarning("Error reading row " + to_string(rowNum) + ": " + e.what());
                 continue;
             }
         }
-    }
-    catch (const exception& e) {
-        cerr << "❌ Error reading Excel file: " << e.what() << endl;
+        
+    } catch (const exception& e) {
+        MenuUtils::printError("Error reading Excel file: " + string(e.what()));
         
         // Return sample data as fallback
-        cout << "🔄 Using sample data as fallback..." << endl;
+        MenuUtils::printInfo("Using sample data as fallback...");
         return Student::createSampleData();
     }
 
@@ -112,11 +99,11 @@ void ExcelUtils::readExcel(const std::string& filename) {
     auto students = readExcelToVector(filename);
     
     if (students.empty()) {
-        cout << "📄 No student data found in the file." << endl;
+        MenuUtils::printWarning("No student data found in the file.");
         return;
     }
 
-    cout << "✅ Successfully read " << students.size() << " students from " << filename << endl;
+    MenuUtils::printSuccess("Successfully read " + to_string(students.size()) + " students from " + filename);
     MenuUtils::displayTable(students);
 }
 
@@ -134,10 +121,11 @@ void ExcelUtils::createBackup(const std::string& sourceFilename, const std::vect
         string backupFilename = "data/backups/backup_" + generateTimestampFilename(sourceFilename);
         writeExcel(backupFilename, students);
         
-        cout << "💾 Backup created: " << backupFilename << endl;
-    }
-    catch (const exception& e) {
-        cerr << "❌ Failed to create backup: " << e.what() << endl;
+        MenuUtils::printSuccess("Backup created: " + backupFilename);
+        
+    } catch (const exception& e) {
+        MenuUtils::printError("Failed to create backup: " + string(e.what()));
+        throw;
     }
 }
 
@@ -186,18 +174,12 @@ void ExcelUtils::exportGradeReport(const std::string& filename, const std::vecto
             writeStudentToExcel(ws, students[i], static_cast<int>(i + 9));
         }
 
-        try {
-            wb.save(filename);
-            cout << "📊 Grade report exported to: " << filename << endl;
-        } catch (const xlnt::exception& e) {
-            cerr << "⚠️ Excel export warning: " << e.what() << endl;
-            // Create CSV backup
-            string csvFilename = filename.substr(0, filename.find_last_of('.')) + "_report.csv";
-            writeCSVReport(csvFilename, students);
-        }
-    }
-    catch (const exception& e) {
-        cerr << "❌ Error creating grade report: " << e.what() << endl;
+        wb.save(filename);
+        MenuUtils::printSuccess("Grade report exported to: " + filename);
+        
+    } catch (const exception& e) {
+        MenuUtils::printError("Error creating grade report: " + string(e.what()));
+        throw;
     }
 }
 
@@ -205,18 +187,18 @@ void ExcelUtils::exportGradeReport(const std::string& filename, const std::vecto
 bool ExcelUtils::importStudentData(const std::string& filename, std::vector<Student>& students) {
     try {
         if (!fileExists(filename)) {
-            cerr << "📁 File '" << filename << "' does not exist!" << endl;
+            MenuUtils::printWarning("File '" + filename + "' does not exist!");
             
             // Create the file with current student data for future imports
-            cout << "🔄 Creating Excel file with current data for future use..." << endl;
+            MenuUtils::printInfo("Creating Excel file with current data for future use...");
             writeExcel(filename, students);
-            cout << "✅ Excel file created successfully!" << endl;
+            MenuUtils::printSuccess("Excel file created successfully!");
             return true;
         }
 
         auto importedStudents = readExcelToVector(filename);
         if (importedStudents.empty()) {
-            cerr << "📄 No valid student data found in the file." << endl;
+            MenuUtils::printWarning("No valid student data found in the file.");
             return false;
         }
 
@@ -224,8 +206,8 @@ bool ExcelUtils::importStudentData(const std::string& filename, std::vector<Stud
         students.clear();
         students = importedStudents;
         
-        cout << "✅ Successfully imported " << importedStudents.size() << " students." << endl;
-        cout << "🔄 Updated grade calculations for all students." << endl;
+        MenuUtils::printSuccess("Successfully imported " + to_string(importedStudents.size()) + " students.");
+        MenuUtils::printInfo("Updated grade calculations for all students.");
         
         // Ensure all students have updated grades
         for (auto& student : students) {
@@ -233,9 +215,9 @@ bool ExcelUtils::importStudentData(const std::string& filename, std::vector<Stud
         }
         
         return true;
-    }
-    catch (const exception& e) {
-        cerr << "❌ Error importing student data: " << e.what() << endl;
+        
+    } catch (const exception& e) {
+        MenuUtils::printError("Error importing student data: " + string(e.what()));
         return false;
     }
 }
@@ -259,15 +241,14 @@ bool ExcelUtils::validateExcelFormat(const std::string& filename) {
                 if (cellValue != expectedHeaders[i]) {
                     return false;
                 }
-            }
-            catch (...) {
+            } catch (...) {
                 return false;
             }
         }
 
         return true;
-    }
-    catch (...) {
+        
+    } catch (...) {
         return false;
     }
 }
@@ -303,9 +284,10 @@ bool ExcelUtils::fileExists(const std::string& filename) {
     return std::filesystem::exists(filename);
 }
 
+// FIXED: Updated headers to include username and password
 std::vector<std::string> ExcelUtils::getExcelHeaders() {
     vector<string> headers = {
-        "Student ID", "Name", "Age", "Gender", "Date of Birth", "Email"
+        "Username", "Password", "Student ID", "Name", "Age", "Gender", "Date of Birth", "Email"
     };
     
     // Add subject headers
@@ -329,11 +311,16 @@ void ExcelUtils::formatExcelHeader(xlnt::worksheet& ws) {
     }
 }
 
+// FIXED: Updated to write username and password to Excel
 void ExcelUtils::writeStudentToExcel(xlnt::worksheet& ws, const Student& student, int row) {
     int col = 1;
     
     try {
-        // Basic information
+        // CRITICAL FIX: Write username and password FIRST
+        ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getUsername());
+        ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getPassword());
+        
+        // Then write basic information
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getStudentId());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getName());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getAge());
@@ -353,16 +340,35 @@ void ExcelUtils::writeStudentToExcel(xlnt::worksheet& ws, const Student& student
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getGpa());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getRemark());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getFormattedTimestamp());
-    }
-    catch (const exception& e) {
-        cerr << "⚠️ Warning writing student to Excel row " << row << ": " << e.what() << endl;
+        
+    } catch (const exception& e) {
+        MenuUtils::printWarning("Warning writing student to Excel row " + to_string(row) + ": " + e.what());
     }
 }
 
+// FIXED: Updated to read username and password from Excel
 Student ExcelUtils::readStudentFromExcel(xlnt::worksheet& ws, int row) {
     int col = 1;
     
     try {
+        // CRITICAL FIX: Read username and password FIRST
+        string username = "";
+        string password = "";
+        
+        try {
+            username = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), row)).to_string();
+        } catch (...) {
+            username = ""; // Default to empty if not found
+        }
+        col++;
+        
+        try {
+            password = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), row)).to_string();
+        } catch (...) {
+            password = ""; // Default to empty if not found
+        }
+        col++;
+        
         // Read basic information with safe string conversion
         string studentId = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).to_string();
         string name = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).to_string();
@@ -392,122 +398,12 @@ Student ExcelUtils::readStudentFromExcel(xlnt::worksheet& ws, int row) {
             }
         }
         
-        // Create student object and update grades
-        Student student(studentId, name, age, gender, dateOfBirth, email, scores);
+        // CRITICAL FIX: Create student object WITH username and password from Excel
+        Student student(username, password, studentId, name, age, gender, dateOfBirth, email, scores);
         student.updateAllGrades(); // Ensure grades are calculated
         return student;
-    }
-    catch (const exception& e) {
+        
+    } catch (const exception& e) {
         throw runtime_error("Error reading student data from row " + to_string(row) + ": " + e.what());
-    }
-}
-
-// Additional helper methods for CSV backup
-void ExcelUtils::writeCSVBackup(const std::string& filename, const std::vector<Student>& students) {
-    try {
-        ofstream csvFile(filename);
-        if (!csvFile.is_open()) {
-            throw runtime_error("Cannot create CSV backup file");
-        }
-        
-        // Write headers
-        auto headers = getExcelHeaders();
-        for (size_t i = 0; i < headers.size(); ++i) {
-            csvFile << headers[i];
-            if (i < headers.size() - 1) csvFile << ",";
-        }
-        csvFile << "\n";
-        
-        // Write student data
-        for (const auto& student : students) {
-            csvFile << student.getStudentId() << ","
-                   << student.getName() << ","
-                   << student.getAge() << ","
-                   << student.getGender() << ","
-                   << student.getDateOfBirth() << ","
-                   << student.getEmail();
-            
-            auto scores = student.getSubjectScores();
-            for (const auto& score : scores) {
-                csvFile << "," << score;
-            }
-            
-            csvFile << "," << student.getAverageScore()
-                   << "," << student.getLetterGrade()
-                   << "," << student.getGpa()
-                   << "," << student.getRemark()
-                   << "," << student.getFormattedTimestamp() << "\n";
-        }
-        
-        csvFile.close();
-        cout << "📄 CSV backup created: " << filename << endl;
-    }
-    catch (const exception& e) {
-        cerr << "❌ Failed to create CSV backup: " << e.what() << endl;
-    }
-}
-
-void ExcelUtils::writeCSVReport(const std::string& filename, const std::vector<Student>& students) {
-    try {
-        ofstream csvFile(filename);
-        if (!csvFile.is_open()) {
-            throw runtime_error("Cannot create CSV report file");
-        }
-        
-        // Write report header
-        csvFile << "GRADE REPORT - " << getCurrentTimestamp() << "\n\n";
-        
-        // Write statistics
-        int totalStudents = static_cast<int>(students.size());
-        int passingStudents = 0;
-        double totalAverage = 0.0;
-        
-        for (const auto& student : students) {
-            if (student.hasPassingGrade()) passingStudents++;
-            totalAverage += student.getAverageScore();
-        }
-        
-        double classAverage = totalStudents > 0 ? totalAverage / totalStudents : 0.0;
-        double passRate = totalStudents > 0 ? (static_cast<double>(passingStudents) / totalStudents) * 100.0 : 0.0;
-        
-        csvFile << "Total Students," << totalStudents << "\n";
-        csvFile << "Passing Students (50+)," << passingStudents << "\n";
-        csvFile << "Pass Rate," << passRate << "%\n";
-        csvFile << "Class Average," << classAverage << "\n\n";
-        
-        // Write student data headers
-        auto headers = getExcelHeaders();
-        for (size_t i = 0; i < headers.size(); ++i) {
-            csvFile << headers[i];
-            if (i < headers.size() - 1) csvFile << ",";
-        }
-        csvFile << "\n";
-        
-        // Write student data
-        for (const auto& student : students) {
-            csvFile << student.getStudentId() << ","
-                   << student.getName() << ","
-                   << student.getAge() << ","
-                   << student.getGender() << ","
-                   << student.getDateOfBirth() << ","
-                   << student.getEmail();
-            
-            auto scores = student.getSubjectScores();
-            for (const auto& score : scores) {
-                csvFile << "," << score;
-            }
-            
-            csvFile << "," << student.getAverageScore()
-                   << "," << student.getLetterGrade()
-                   << "," << student.getGpa()
-                   << "," << student.getRemark()
-                   << "," << student.getFormattedTimestamp() << "\n";
-        }
-        
-        csvFile.close();
-        cout << "📊 CSV report created: " << filename << endl;
-    }
-    catch (const exception& e) {
-        cerr << "❌ Failed to create CSV report: " << e.what() << endl;
     }
 }

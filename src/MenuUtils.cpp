@@ -40,6 +40,294 @@ Color MenuUtils::getGradeColor(const std::string& grade) {
     return Color::white;        // Default
 }
 
+// Enhanced loading animation
+void MenuUtils::showLoadingAnimation(const std::string& message, int duration) {
+    clearScreen();
+    
+    // Center the loading message vertically
+    for (int i = 0; i < 10; i++) cout << "\n";
+    
+    // Center horizontally and show message
+    cout << string(25, ' ') << GREEN << message << RESET << endl;
+    cout << string(25, ' ') << "Loading: [";
+    
+    // Progress bar animation
+    for (int i = 0; i <= 20; i++) {
+        if (i <= 20) {
+            cout << GREEN << "█" << RESET;
+        }
+        cout.flush();
+        
+        #ifdef _WIN32
+            Sleep(duration / 20);
+        #else
+            usleep((duration * 1000) / 20);
+        #endif
+    }
+    
+    cout << "] " << GREEN << "100%" << RESET << endl;
+    
+    // Success message
+    cout << endl << string(20, ' ') << GREEN << "✅ Login Successful! ✅" << RESET << endl;
+    
+    #ifdef _WIN32
+        Sleep(1500);
+    #else
+        usleep(1500000);
+    #endif
+}
+
+// Enhanced Welcome with USER PORTAL style
+void MenuUtils::printWelcome() {
+    system("cls");
+    
+    // Center spacing for console (adjust if needed)
+    cout << string(10, '\n'); // Top spacing to center vertically
+    
+    // ISTAD PRE-GEN4 with character-by-character animation
+    string text = R"(  ██╗███████╗████████╗ █████╗ ██████╗     ██████╗ ██████╗ ███████╗      ██████╗ ███████╗███╗   ██╗██╗  ██╗
+  ██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗    ██╔══██╗██╔══██╗██╔════╝     ██╔════╝ ██╔════╝████╗  ██║██║  ██║
+  ██║███████╗   ██║   ███████║██║  ██║    ██████╔╝██████╔╝█████╗       ██║  ███╗█████╗  ██╔██╗ ██║███████║
+  ██║╚════██║   ██║   ██╔══██║██║  ██║    ██╔═══╝ ██╔══██╗██╔══╝       ██║   ██║██╔══╝  ██║╚██╗██║╚════██║
+  ██║███████║   ██║   ██║  ██║██████╔╝    ██║     ██║  ██║███████╗     ╚██████╔╝███████╗██║ ╚████║     ██║
+  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝     ╚═╝     ╚═╝  ╚═╝╚══════╝      ╚═════╝ ╚══════╝╚═╝  ╚═══╝     ╚═╝)";
+
+    // Add leading spaces to center horizontally
+    cout << "        "; // Adjust spacing as needed
+    
+    cout << "\033[94m"; // Blue color
+    
+    // REALLY FAST animation - NO DELAYS AT ALL!
+    for (int i = 0; i < text.length(); i++) {
+        if (text[i] == '\n') {
+            cout << text[i];
+            cout << "        "; // Add spacing for next line
+            // NO DELAY FOR LINE BREAKS - INSTANT!
+        } else {
+            cout << text[i];
+            cout.flush();
+            // NO DELAYS FOR ANY CHARACTERS - REALLY FAST!
+        }
+    }
+    cout << "\033[0m" << endl;
+    cout << endl;
+
+    // Centered loading animation
+    cout << "                                               "; // Center the loading text
+    cout << RED << "Loading";
+    
+    for (int i = 0; i < 3; i++) {
+        #ifdef _WIN32
+            Sleep(400);  // Windows Sleep function (milliseconds)
+        #else
+            system("sleep 1");
+        #endif
+        cout << ".";
+        cout.flush();
+    }
+    cout << RESET << endl;
+
+    // Wait for 2 seconds
+    #ifdef _WIN32
+        Sleep(2000);
+    #else
+        system("sleep 2");
+    #endif
+
+    #ifdef _WIN32
+        Sleep(2000);
+    #else
+        usleep(2000);
+    #endif
+
+    system("cls");
+
+    // Simple welcome message with hash borders (no animation) - CENTERED
+    cout << GREEN << endl;
+    cout << "                            #############################################################################" << endl;
+    cout << "                            #                                                                           #" << endl;
+    cout << "                            #                      WELCOME TO SCOREME GENERATOR                         #" << endl;
+    cout << "                            #                                                                           #" << endl;
+    cout << "                            #                   Student Grade Management System                         #" << endl;
+    cout << "                            #                                                                           #" << endl;
+    cout << "                            #############################################################################" << endl;
+    cout << RESET << endl;
+
+    // Small delay before developer credit
+    #ifdef _WIN32
+        Sleep(1000);
+    #else
+        usleep(1000000);
+    #endif
+
+    // Animated developer credit - CENTERED
+    cout << YELLOW << "                                           ";
+    string developer = "Developed by ISTAD Pre-Gen4 GroupI";
+    for (int i = 0; i < developer.length(); i++) {
+        cout << developer[i];
+        cout.flush();
+        #ifdef _WIN32
+            Sleep(40);
+        #else
+            usleep(40000);
+        #endif
+    }
+    cout << RESET << endl;
+    cout << endl;
+
+    #ifdef _WIN32
+        Sleep(2000);
+    #else
+        usleep(2000000);
+    #endif
+}
+
+// Enhanced Main Menu with centered layout
+void MenuUtils::printMainMenu() {
+    clearScreen();
+    
+    // Add some top spacing
+    cout << string(8, '\n');
+    
+    // Main menu header with cyan lines
+    cout << string(40, ' ') << CYAN << "═══════════════════════════════════════════════════════════" << RESET << endl;
+    cout << string(40, ' ') << CYAN << "                        MAIN MENU                         " << RESET << endl;
+    cout << string(40, ' ') << CYAN << "═══════════════════════════════════════════════════════════" << RESET << endl;
+    cout << endl;
+    cout << endl;
+    
+    // Menu table - matching the image style exactly
+    cout << string(40, ' ') << "┌────┬─────────────────────────────────────────────────────┐" << endl;
+    cout << string(40, ' ') << "│ No │                   Menu Options                      │" << endl;
+    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
+    cout << string(40, ' ') << "│ 1  │ " << GREEN << "🔐 Admin Login                                      " << RESET << "│" << endl;
+    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
+    cout << string(40, ' ') << "│ 2  │ " << BLUE << "👨‍🎓 Student Login                                  " << RESET << "│" << endl;
+    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
+    cout << string(40, ' ') << "│ 3  │ " << RED << "🚪 Exit                                             " << RESET << "│" << endl;
+    cout << string(40, ' ') << "└────┴─────────────────────────────────────────────────────┘" << endl;
+    cout << endl;
+}
+
+
+// Enhanced Admin Dashboard
+void MenuUtils::printAdminDashboard() {
+    clearScreen();
+    
+    // Admin Dashboard ASCII Art
+    cout << string(3, '\n');
+    cout << MAGENTA << endl;
+    cout << "            █████╗ ██████╗ ███╗   ███╗██╗███╗   ██╗    ██████╗  █████╗ ███████╗██╗  ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ " << endl;
+    cout << "           ██╔══██╗██╔══██╗████╗ ████║██║████╗  ██║    ██╔══██╗██╔══██╗██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗" << endl;
+    cout << "           ███████║██║  ██║██╔████╔██║██║██╔██╗ ██║    ██║  ██║███████║███████╗███████║██████╔╝██║   ██║███████║██████╔╝██║  ██║" << endl;
+    cout << "           ██╔══██║██║  ██║██║╚██╔╝██║██║██║╚██╗██║    ██║  ██║██╔══██║╚════██║██╔══██║██╔══██╗██║   ██║██╔══██║██╔══██╗██║  ██║" << endl;
+    cout << "           ██║  ██║██████╔╝██║ ╚═╝ ██║██║██║ ╚████║    ██████╔╝██║  ██║███████║██║  ██║██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝" << endl;
+    cout << "           ╚═╝  ╚═╝╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ " << endl;
+    cout << RESET << endl;
+}
+
+// Enhanced Student Dashboard
+void MenuUtils::printStudentDashboard() {
+    clearScreen();
+    
+    // STU DASHBOARD ASCII Art
+    cout << string(3, '\n');
+    cout << BLUE << endl;
+    cout << "          ███████╗████████╗██╗   ██╗    ██████╗  █████╗ ███████╗██╗  ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ " << endl;
+    cout << "          ██╔════╝╚══██╔══╝██║   ██║    ██╔══██╗██╔══██╗██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗" << endl;
+    cout << "          ███████╗   ██║   ██║   ██║    ██║  ██║███████║███████╗███████║██████╔╝██║   ██║███████║██████╔╝██║  ██║" << endl;
+    cout << "          ╚════██║   ██║   ██║   ██║    ██║  ██║██╔══██║╚════██║██╔══██║██╔══██╗██║   ██║██╔══██║██╔══██╗██║  ██║" << endl;
+    cout << "          ███████║   ██║   ╚██████╔╝    ██████╔╝██║  ██║███████║██║  ██║██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝" << endl;
+    cout << "          ╚══════╝   ╚═╝    ╚═════╝     ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ " << endl;
+    cout << RESET << endl;
+}
+// Enhanced Admin Menu
+void MenuUtils::printAdminMenu() {
+    printAdminDashboard();
+    
+    cout << endl;
+    cout << string(25, ' ') << "┌─────┬───────────────────────────────────────────────────────────┐" << endl;
+    cout << string(25, ' ') << "│ No  │                    Admin Options                          │" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 1   │ " << GREEN << "👥 Manage Students                                        " << RESET << "│" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 2   │ " << BLUE << "📊 Import Excel Data                                      " << RESET << "│" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 3   │ " << YELLOW << "📈 Export Grade Report                                    " << RESET << "│" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 4   │ " << MAGENTA << "💾 Backup Data                                            " << RESET << "│" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 5   │ " << CYAN << "🚪 Sign Out                                               " << RESET << "│" << endl;
+    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
+    cout << string(25, ' ') << "│ 6   │ " << RED << "🔙 Back to Main Menu                                      " << RESET << "│" << endl;
+    cout << string(25, ' ') << "└─────┴───────────────────────────────────────────────────────────┘" << endl;
+    cout << endl;
+}
+
+
+// Enhanced Student Menu
+void MenuUtils::printStudentMenu() {
+    printStudentDashboard();
+    
+    cout << endl;
+    cout << string(30, ' ') << "┌─────┬─────────────────────────────────────────┐" << endl;
+    cout << string(30, ' ') << "│ No  │            Student Options              │" << endl;
+    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
+    cout << string(30, ' ') << "│ 1   │ " << GREEN << "🔍 Search Your Data                     " << RESET << "│" << endl;
+    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
+    cout << string(30, ' ') << "│ 2   │ " << BLUE << "📊 View Your Grades                     " << RESET << "│" << endl;
+    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
+    cout << string(30, ' ') << "│ 3   │ " << RED << "🚪 Sign Out                             " << RESET << "│" << endl;
+    cout << string(30, ' ') << "└─────┴─────────────────────────────────────────┘" << endl;
+    cout << endl;
+}
+
+// Enhanced Thank You Message
+void MenuUtils::printThankYou() {
+    clearScreen();
+    
+    // Add vertical spacing
+    cout << string(5, '\n');
+    
+    // Thank you ASCII art
+    cout << CYAN << endl;
+    cout << "                ████████╗██╗  ██╗ █████╗ ███╗   ██╗██╗  ██╗    ██╗   ██╗ ██████╗ ██╗   ██╗" << endl;
+    cout << "                ╚══██╔══╝██║  ██║██╔══██╗████╗  ██║██║ ██╔╝    ╚██╗ ██╔╝██╔═══██╗██║   ██║" << endl;
+    cout << "                   ██║   ███████║███████║██╔██╗ ██║█████╔╝      ╚████╔╝ ██║   ██║██║   ██║" << endl;
+    cout << "                   ██║   ██╔══██║██╔══██║██║╚██╗██║██╔═██╗       ╚██╔╝  ██║   ██║██║   ██║" << endl;
+    cout << "                   ██║   ██║  ██║██║  ██║██║ ╚████║██║  ██╗       ██║   ╚██████╔╝╚██████╔╝" << endl;
+    cout << "                   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝       ╚═╝    ╚═════╝  ╚═════╝ " << endl;
+    cout << RESET << endl;
+    
+    cout << "                                      " << GREEN << "FOR USING OUR SYSTEM!" << RESET << endl;
+    cout << endl;
+    cout << "                                    " << YELLOW << "ScoreME Generator v1.0" << RESET << endl;
+    cout << "                                 " << MAGENTA << "Developed by ISTAD Pre-Gen4 GroupI" << RESET << endl;
+    cout << endl;
+    
+    // Animation
+    cout << "                                          ";
+    for (int i = 0; i < 5; i++) {
+        cout << GREEN << "★ " << RESET;
+        cout.flush();
+        #ifdef _WIN32
+            Sleep(300);
+        #else
+            usleep(300000);
+        #endif
+    }
+    cout << endl;
+    
+    cout << "                                    " << GREEN << "Have a wonderful day! 👋" << RESET << endl;
+    cout << endl;
+    
+    #ifdef _WIN32
+        Sleep(3000);
+    #else
+        usleep(3000000);
+    #endif
+}
+
 // Display methods
 void MenuUtils::displayTable(const std::vector<Student>& students) {
     if (students.empty()) {
@@ -48,7 +336,8 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
     }
     
     Table table;
-    table.add_row({"ID", "Name", "Age", "Gender", "Average", "Grade", "GPA", "Remark"});
+    // FIXED: Add all columns in correct order including Email
+    table.add_row({"ID", "Name", "Age", "Gender", "Email", "Average", "Grade", "GPA", "Remark"});
     
     for (const auto& student : students) {
         table.add_row({
@@ -56,6 +345,7 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
             student.getName(),
             to_string(student.getAge()),
             student.getGender(),
+            student.getEmail(),  // FIXED: Added missing email column
             to_string(static_cast<int>(student.getAverageScore() * 100) / 100.0),
             student.getLetterGrade(),
             to_string(student.getGpa()),
@@ -65,7 +355,7 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
     
     table[0].format().font_style({FontStyle::bold}).font_color(Color::cyan);
     
-    // UPDATED: Apply color coding based on new grading system
+    // Apply color coding based on new grading system
     for (size_t i = 1; i < table.size(); ++i) {
         std::string grade = students[i-1].getLetterGrade();
         std::string remark = students[i-1].getRemark();
@@ -82,7 +372,7 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
     
     cout << table << endl;
     
-    // ADDED: Display color legend
+    // Display color legend
     printColorLegend();
 }
 
@@ -113,7 +403,7 @@ void MenuUtils::displayStudentDetails(const Student& student) {
     
     table[0].format().font_style({FontStyle::bold}).font_color(Color::cyan);
     
-    // UPDATED: Color the grade and remark rows based on new system
+    // Color the grade and remark rows based on new system
     for (size_t i = 1; i < table.size(); ++i) {
         std::string fieldName = table[i][0].get_text();
         
@@ -178,7 +468,7 @@ void MenuUtils::displayGradeReport(const std::vector<Student>& students) {
     summaryTable.add_row({"Pass Rate", to_string(static_cast<int>(passRate * 100) / 100.0) + "%"});
     summaryTable.add_row({"Class Average", to_string(static_cast<int>(classAverage * 100) / 100.0)});
     
-    // ADDED: Grade distribution
+    // Grade distribution
     summaryTable.add_row({"Grade A (90-100)", to_string(gradeA)});
     summaryTable.add_row({"Grade B (80-89)", to_string(gradeB)});
     summaryTable.add_row({"Grade C (70-79)", to_string(gradeC)});
@@ -224,7 +514,7 @@ void MenuUtils::displayFailingStudents(const std::vector<Student>& students) {
     displayTable(students);
 }
 
-// ADDED: Color legend function
+// Color legend function
 void MenuUtils::printColorLegend() {
     cout << "\n" << BOLD << "Grade Color Legend:" << RESET << endl;
     cout << GREEN << "● A-C: Excellent Performance" << RESET << endl;
@@ -244,170 +534,6 @@ void MenuUtils::printMenu(const std::vector<std::string>& items) {
     
     table[0].format().font_style({FontStyle::bold}).font_color(Color::cyan);
     cout << table << endl;
-}
-
-// Add this to your MenuUtils.cpp file - replace the existing printWelcome() function
-
-void MenuUtils::printWelcome() {
-    system("cls");
-    
-    // Center spacing for console (adjust if needed)
-    cout << string(10, '\n'); // Top spacing to center vertically
-    
-    // ISTAD PRE-GEN4 with character-by-character animation
-    string text = R"(  ██╗███████╗████████╗ █████╗ ██████╗     ██████╗ ██████╗ ███████╗      ██████╗ ███████╗███╗   ██╗██╗  ██╗
-  ██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗    ██╔══██╗██╔══██╗██╔════╝     ██╔════╝ ██╔════╝████╗  ██║██║  ██║
-  ██║███████╗   ██║   ███████║██║  ██║    ██████╔╝██████╔╝█████╗       ██║  ███╗█████╗  ██╔██╗ ██║███████║
-  ██║╚════██║   ██║   ██╔══██║██║  ██║    ██╔═══╝ ██╔══██╗██╔══╝       ██║   ██║██╔══╝  ██║╚██╗██║╚════██║
-  ██║███████║   ██║   ██║  ██║██████╔╝    ██║     ██║  ██║███████╗     ╚██████╔╝███████╗██║ ╚████║     ██║
-  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝     ╚═╝     ╚═╝  ╚═╝╚══════╝      ╚═════╝ ╚══════╝╚═╝  ╚═══╝     ╚═╝)";
-
-    // Add leading spaces to center horizontally
-    cout << "        "; // Adjust spacing as needed
-    
-    cout << "\033[94m"; // Green color like your original
-    
-    // Animate each character
-    for (int i = 0; i < text.length(); i++) {
-        if (text[i] == '\n') {
-            cout << text[i];
-            cout << "        "; // Add spacing for next line
-            #ifdef _WIN32
-                Sleep(100); // Pause at line breaks
-            #else
-                usleep(200);
-            #endif
-        } else {
-            cout << text[i];
-            cout.flush();
-            
-            // Different speeds for different characters
-            if (text[i] == '█') {
-                #ifdef _WIN32
-                    Sleep(30); // Slower for blocks
-                #else
-                    usleep(30000);
-                #endif
-            } else if (text[i] != ' ') {
-                #ifdef _WIN32
-                    Sleep(15); // Normal speed
-                #else
-                    usleep(15000);
-                #endif
-            }
-        }
-    }
-    cout << "\033[0m" << endl;
-    cout << endl;
-
-    // Centered loading animation
-    cout << "                                               "; // Center the loading text
-    cout << RED << "Loading";
-    
-    for (int i = 0; i < 3; i++) {
-        #ifdef _WIN32
-            Sleep(400);  // Windows Sleep function (milliseconds)
-        #else
-            system("sleep 1");
-        #endif
-        cout << ".";
-        cout.flush();
-    }
-    cout << RESET << endl;
-
-    // Wait for 2 seconds
-    #ifdef _WIN32
-        Sleep(2000);
-    #else
-        system("sleep 2");
-    #endif
-
-    #ifdef _WIN32
-        Sleep(2000);
-    #else
-        usleep(2000000);
-    #endif
-
-    system("cls");
-
-    // Simple welcome message with hash borders (no animation) - CENTERED
-    cout << GREEN << endl;
-    cout << "                            #############################################################################" << endl;
-    cout << "                            #                                                                           #" << endl;
-    cout << "                            #                      WELCOME TO SCOREME GENERATOR                         #" << endl;
-    cout << "                            #                                                                           #" << endl;
-    cout << "                            #                   Student Grade Management System                         #" << endl;
-    cout << "                            #                                                                           #" << endl;
-    cout << "                            #############################################################################" << endl;
-    cout << RESET << endl;
-
-    // Small delay before developer credit
-    #ifdef _WIN32
-        Sleep(1000);
-    #else
-        usleep(1000000);
-    #endif
-
-    // Animated developer credit - CENTERED
-    cout << YELLOW << "                                           ";
-    string developer = "Developed by ISTAD Pre-Gen4 GroupI";
-    for (int i = 0; i < developer.length(); i++) {
-        cout << developer[i];
-        cout.flush();
-        #ifdef _WIN32
-            Sleep(40);
-        #else
-            usleep(40000);
-        #endif
-    }
-    cout << RESET << endl;
-    cout << endl;
-
-    #ifdef _WIN32
-        Sleep(2000);
-    #else
-        usleep(2000000);
-    #endif
-}
-
-void MenuUtils::printMainMenu() {
-    printHeader("MAIN MENU");
-    
-    vector<string> mainMenu = {
-        "Admin Login",
-        "Student Login", 
-        "Exit"
-    };
-    
-    printMenu(mainMenu);
-}
-
-
-void MenuUtils::printAdminMenu() {
-    printHeader("ADMIN DASHBOARD");
-    
-    vector<string> adminMenu = {
-        "Manage Students",
-        "Import Excel Data",
-        "Export Grade Report",
-        "Backup Data",
-        "Sign Out",
-        "Back to Main Menu"
-    };
-    
-    printMenu(adminMenu);
-}
-
-void MenuUtils::printStudentMenu() {
-    printHeader("STUDENT MENU");
-    
-    vector<string> studentMenu = {
-        "Search Your Data",
-        "View Your Grades",
-        "Sign Out"
-    };
-    
-    printMenu(studentMenu);
 }
 
 // Colored output methods
@@ -435,7 +561,7 @@ void MenuUtils::printInfo(const std::string& message) {
 int MenuUtils::getMenuChoice(int maxOptions) {
     int choice;
     while (true) {
-        cout << CYAN << ">> Choose your option (1-" << maxOptions << "): " << RESET;
+        cout << string(35, ' ') << CYAN << ">> Choose your option (1-" << maxOptions << "): " << RESET;
         cin >> choice;
         
         if (cin.fail() || choice < 1 || choice > maxOptions) {

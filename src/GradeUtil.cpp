@@ -59,6 +59,6 @@ std::vector<std::string> GradeUtil::getSubjectNames() {
         "Biology",
         "English",
         "History",
-        "Computer Science"
+        "Khmer"
     };
 }

@@ -174,26 +174,26 @@ bool Student::hasPassingGrade() const {
 std::vector<Student> Student::createSampleData() {
     std::vector<Student> students;
     
-        students.emplace_back("STU001", "John Smith", 20, "Male", "2003-05-15", "john.smith@email.com",
+        students.emplace_back("STU001", "Theara Lavy", 22, "Male", "2003-05-15", "thearalavy@email.com",
                             std::vector<double>{85.5, 78.0, 92.3, 88.7, 76.5, 90.1, 82.8});
-        students.emplace_back("STU002", "Emily Johnson", 19, "Female", "2004-08-22", "emily.johnson@email.com",
+        students.emplace_back("STU002", "Nai Sophanny", 21, "Female", "2004-08-22", "naisophanny@email.com",
                             std::vector<double>{92.1, 89.5, 87.3, 91.2, 88.9, 85.7, 90.4});
-        students.emplace_back("STU003", "Michael Brown", 21, "Male", "2002-12-10", "michael.brown@email.com",
+        students.emplace_back("STU003", "Phong Nodiya", 21, "Female", "2004-12-10", "phongnodiya@email.com",
                             std::vector<double>{76.8, 82.3, 79.5, 85.2, 81.7, 78.9, 80.1});
-        students.emplace_back("STU004", "Sarah Davis", 20, "Female", "2003-03-18", "sarah.davis@email.com",
+        students.emplace_back("STU004", "Sarah Davis", 20, "Female", "2005-03-18", "sarahdavis@email.com",
                             std::vector<double>{88.9, 91.2, 86.5, 89.8, 87.3, 90.7, 88.1});
-        students.emplace_back("STU005", "David Wilson", 19, "Male", "2004-07-25", "david.wilson@email.com",
+        students.emplace_back("STU005", "Chan Dara", 19, "Male", "2006-07-25", "chandara@email.com",
                             std::vector<double>{65.2, 58.9, 62.1, 59.8, 61.5, 63.7, 60.3});
-        students.emplace_back("STU006", "Lisa Miller", 20, "Female", "2003-11-30", "lisa.miller@email.com",
+        students.emplace_back("STU006", "Sarun Lisa", 18, "Female", "2007-11-30", "sarunlisa@email.com",
                             std::vector<double>{94.5, 96.2, 93.8, 95.1, 97.3, 92.9, 94.7});
-        students.emplace_back("STU007", "James Taylor", 21, "Male", "2002-09-14", "james.taylor@email.com",
-                            std::vector<double>{78.3, 81.5, 77.9, 82.1, 79.7, 80.4, 78.8});
-        students.emplace_back("STU008", "Jennifer Anderson", 19, "Female", "2004-04-08", "jennifer.anderson@email.com",
+        students.emplace_back("STU007", "Nat Sitha", 22, "Male", "2003-09-14", "natsitha@email.com",
+                            std::vector<double>{38.3, 48.5, 57.9, 32.1, 49.7, 50.4, 48.8});
+        students.emplace_back("STU008", "Tep Thida", 20, "Female", "2005-04-08", "tepthida@email.com",
                             std::vector<double>{91.7, 88.3, 90.5, 87.9, 89.1, 92.4, 90.8});
-        students.emplace_back("STU009", "Robert Thomas", 20, "Male", "2003-01-20", "robert.thomas@email.com",
+        students.emplace_back("STU009", "Rong Ravuth", 22, "Male", "2003-01-20", "rongravuth@email.com",
                             std::vector<double>{55.8, 52.3, 58.1, 54.9, 56.7, 53.5, 55.2});
-        students.emplace_back("STU010", "Jessica Martinez", 19, "Female", "2004-06-12", "jessica.martinez@email.com",
-                            std::vector<double>{87.4, 85.9, 89.2, 86.7, 88.5, 87.1, 86.8});
+        students.emplace_back("STU010", "Phy Sovanna", 21, "Female", "2004-06-12", "physovanna@email.com",
+                            std::vector<double>{57.4, 45.9, 39.2, 46.7, 58.5, 47.1, 46.8});
     
     // Update all grades for sample data
     for (auto& student : students) {

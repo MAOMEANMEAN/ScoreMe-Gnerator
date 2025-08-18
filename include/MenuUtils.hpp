@@ -23,6 +23,12 @@ public:
     static void printAdminMenu();
     static void printStudentMenu();
     
+    // NEW: Enhanced UI methods
+    static void printAdminDashboard();
+    static void printStudentDashboard();
+    static void printThankYou();
+    static void showLoadingAnimation(const std::string& message = "Initializing", int duration = 2000);
+    
     // Colored output methods
     static void printColored(const std::string& text, const std::string& color);
     static void printSuccess(const std::string& message);
@@ -30,7 +36,7 @@ public:
     static void printWarning(const std::string& message);
     static void printInfo(const std::string& message);
     
-    // ADDED: New color and display methods
+    // Color and display methods
     static void printColorLegend();
     static tabulate::Color getGradeColor(const std::string& grade);
     
