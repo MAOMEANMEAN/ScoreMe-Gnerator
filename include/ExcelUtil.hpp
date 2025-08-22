@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 #include "Student.hpp"
 
 // Forward declaration to avoid circular dependency
@@ -14,6 +15,9 @@ public:
     static void writeExcel(const std::string& filename, const std::vector<Student>& students);
     static std::vector<Student> readExcelToVector(const std::string& filename);
     static void readExcel(const std::string& filename);
+    
+    // NEW: Credentials Excel operations (separate file for credentials only)
+    static void writeCredentialsExcel(const std::string& filename, const std::vector<Student>& students);
     
     // Enhanced Excel operations
     static void writeExcelWithTimestamp(const std::string& baseFilename, const std::vector<Student>& students);
@@ -29,8 +33,12 @@ public:
     static std::string getCurrentTimestamp();
     static bool fileExists(const std::string& filename);
     
-    // Excel column headers
-    static std::vector<std::string> getExcelHeaders();
+    // Excel column headers (two versions: with and without credentials)
+    static std::vector<std::string> getExcelHeaders(); // Without credentials
+    static std::vector<std::string> getCredentialHeaders(); // Only for credentials file
+    
+    // NEW: Helper method to load credentials from separate file
+    static void loadCredentialsFromFile(const std::string& credFilename, std::map<std::string, std::pair<std::string, std::string>>& credentialsMap);
     
 private:
     // Helper methods for Excel formatting

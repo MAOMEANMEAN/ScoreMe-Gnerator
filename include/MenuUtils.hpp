@@ -29,6 +29,9 @@ public:
     static void printThankYou();
     static void showLoadingAnimation(const std::string& message = "Initializing", int duration = 2000);
     
+    // NEW: Import instruction method
+    //
+    
     // Colored output methods
     static void printColored(const std::string& text, const std::string& color);
     static void printSuccess(const std::string& message);

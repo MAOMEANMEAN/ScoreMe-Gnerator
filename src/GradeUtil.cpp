@@ -37,7 +37,6 @@ double GradeUtil::calculateGpa(double average) {
     else return 0.0;  // F grade gets 0.0 GPA
 }
 
-// UPDATED: Only F grade (below 50) is considered fail
 std::string GradeUtil::assignRemark(double average) {
     return (average >= PASSING_THRESHOLD) ? "Pass" : "Fail";  // 50+ is Pass, below 50 is Fail
 }
@@ -46,7 +45,6 @@ bool GradeUtil::isValidScore(double score) {
     return score >= MIN_SCORE && score <= MAX_SCORE;
 }
 
-// UPDATED: Passing grade is now 50+
 bool GradeUtil::isPassingGrade(double average) {
     return average >= PASSING_THRESHOLD;  // 50+ is passing
 }
@@ -54,7 +52,7 @@ bool GradeUtil::isPassingGrade(double average) {
 std::vector<std::string> GradeUtil::getSubjectNames() {
     return {
         "Mathematics",
-        "Physics", 
+        "Physics",
         "Chemistry",
         "Biology",
         "English",

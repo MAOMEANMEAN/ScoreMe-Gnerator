@@ -1,5 +1,6 @@
 #include "MenuUtils.hpp"
 #include "GradeUtil.hpp"
+#include "ExcelUtil.hpp" // Added for import instructions
 #include <tabulate/table.hpp>
 #include <iostream>
 #include <iomanip>
@@ -182,33 +183,70 @@ void MenuUtils::printWelcome() {
     #endif
 }
 
-// Enhanced Main Menu with centered layout
+// Enhanced Main Menu with cyberpunk/sci-fi aesthetic
 void MenuUtils::printMainMenu() {
     clearScreen();
     
     // Add some top spacing
-    cout << string(8, '\n');
+    cout << string(6, '\n');
     
-    // Main menu header with cyan lines
-    cout << string(40, ' ') << CYAN << "═══════════════════════════════════════════════════════════" << RESET << endl;
-    cout << string(40, ' ') << CYAN << "                        MAIN MENU                         " << RESET << endl;
-    cout << string(40, ' ') << CYAN << "═══════════════════════════════════════════════════════════" << RESET << endl;
+    // Main Menu header with double lines
+    cout << string(10, ' ') << CYAN << "══════════════════════════════════════════════════════════════════════════════════════════════════════════" << RESET << endl;
+    
+    // ASCII art "MAIN MENU" with proper centering
+    cout << MAGENTA;
+    cout << "                   $$\\      $$\\  $$$$$$\\  $$$$$$\\ $$\\   $$\\       $$\\      $$\\ $$$$$$$$\\ $$\\   $$\\ $$\\   $$\\ " << endl;
+    cout << "                   $$$\\    $$$ |$$  __$$\\ \\_$$  _|$$$\\  $$ |      $$$\\    $$$ |$$  _____|$$$\\  $$ |$$ |  $$ |" << endl;
+    cout << "                   $$$$\\  $$$$ |$$ /  $$ |  $$ |  $$$$\\ $$ |      $$$$\\  $$$$ |$$ |      $$$$\\ $$ |$$ |  $$ |" << endl;
+    cout << "                   $$\\$$\\$$ $$ |$$$$$$$$ |  $$ |  $$ $$\\$$ |      $$\\$$\\$$ $$ |$$$$$\\    $$ $$\\$$ |$$ |  $$ |" << endl;
+    cout << "                   $$ \\$$$  $$ |$$  __$$ |  $$ |  $$ \\$$$$ |      $$ \\$$$  $$ |$$  __|   $$ \\$$$$ |$$ |  $$ |" << endl;
+    cout << "                   $$ |\\$  /$$ |$$ |  $$ |  $$ |  $$ |\\$$$ |      $$ |\\$  /$$ |$$ |      $$ |\\$$$ |$$ |  $$ |" << endl;
+    cout << "                   $$ | \\_/ $$ |$$ |  $$ |$$$$$$\\ $$ | \\$$ |      $$ | \\_/ $$ |$$$$$$$$\\ $$ | \\$$ |\\$$$$$$  |" << endl;
+    cout << "                   \\__|     \\__|\\__|  \\__|\\______|\\__|  \\__|      \\__|     \\__|\\________|\\__|  \\__| \\______/ " << endl;
+    cout << RESET;
+    
+    cout << string(10, ' ') << CYAN << "══════════════════════════════════════════════════════════════════════════════════════════════════════════" << RESET << endl;
     cout << endl;
     cout << endl;
     
-    // Menu table - matching the image style exactly
-    cout << string(40, ' ') << "┌────┬─────────────────────────────────────────────────────┐" << endl;
-    cout << string(40, ' ') << "│ No │                   Menu Options                      │" << endl;
-    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
-    cout << string(40, ' ') << "│ 1  │ " << GREEN << "🔐 Admin Login                                      " << RESET << "│" << endl;
-    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
-    cout << string(40, ' ') << "│ 2  │ " << BLUE << "👨‍🎓 Student Login                                  " << RESET << "│" << endl;
-    cout << string(40, ' ') << "├────┼─────────────────────────────────────────────────────┤" << endl;
-    cout << string(40, ' ') << "│ 3  │ " << RED << "🚪 Exit                                             " << RESET << "│" << endl;
-    cout << string(40, ' ') << "└────┴─────────────────────────────────────────────────────┘" << endl;
+      // Calculate center position for the menu box (64 characters wide)
+    int consoleWidth = 120; // Adjust this to your console width
+    int menuBoxWidth = 64;
+    int centerOffset = (consoleWidth - menuBoxWidth) / 2;
+    
+    // Enhanced menu table with cyberpunk styling and colors - FIXED LAYOUT
+    cout << string(centerOffset, ' ') << CYAN << "╭────────────────────────────────────────────────────────────────╮" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│" << RESET << string(27, ' ') << BOLD << WHITE << "Menu Options" << RESET << string(25, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "├─────┬──────────────────────────────────────────────────────────┤" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│ " << BOLD << WHITE << "No" << RESET << "  " << CYAN << "│" << RESET << string(4, ' ') << BOLD << WHITE << "Options" << RESET << string(47, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "╞═════╪══════════════════════════════════════════════════════════╡" << RESET << endl;
+    
+    // Admin Login with enhanced styling
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "1" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << GREEN << "🔐" << RESET << " " << GREEN << "Admin Login" << RESET;
+    cout << string(43, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Student Login
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "2" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << BLUE << "👨‍🎓" << RESET << " " << BLUE << "Student Login" << RESET;
+    cout << string(39, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Exit option
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "3" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << RED << "🚪" << RESET << " " << RED << "Exit" << RESET;
+    cout << string(50, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "╰─────┴──────────────────────────────────────────────────────────╯" << RESET << endl;
+    cout << endl;
+    
+    // Add some cyberpunk flair at the bottom
+    cout << string(35, ' ') << MAGENTA << "▼" << RESET << " " << CYAN << "System Ready" << RESET << " " << MAGENTA << "▼" << RESET << endl;
     cout << endl;
 }
-
 
 // Enhanced Admin Dashboard
 void MenuUtils::printAdminDashboard() {
@@ -241,44 +279,93 @@ void MenuUtils::printStudentDashboard() {
     cout << "          ╚══════╝   ╚═╝    ╚═════╝     ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ " << endl;
     cout << RESET << endl;
 }
-// Enhanced Admin Menu
+
 void MenuUtils::printAdminMenu() {
     printAdminDashboard();
     
-    cout << endl;
-    cout << string(25, ' ') << "┌─────┬───────────────────────────────────────────────────────────┐" << endl;
-    cout << string(25, ' ') << "│ No  │                    Admin Options                          │" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 1   │ " << GREEN << "👥 Manage Students                                        " << RESET << "│" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 2   │ " << BLUE << "📊 Import Excel Data                                      " << RESET << "│" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 3   │ " << YELLOW << "📈 Export Grade Report                                    " << RESET << "│" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 4   │ " << MAGENTA << "💾 Backup Data                                            " << RESET << "│" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 5   │ " << CYAN << "🚪 Sign Out                                               " << RESET << "│" << endl;
-    cout << string(25, ' ') << "├─────┼───────────────────────────────────────────────────────────┤" << endl;
-    cout << string(25, ' ') << "│ 6   │ " << RED << "🔙 Back to Main Menu                                      " << RESET << "│" << endl;
-    cout << string(25, ' ') << "└─────┴───────────────────────────────────────────────────────────┘" << endl;
+    int consoleWidth = 120; // Adjust this to your console width
+    int menuBoxWidth = 64;
+    int centerOffset = (consoleWidth - menuBoxWidth) / 2;
+    
+    // Enhanced menu table with cyberpunk styling and colors - FIXED LAYOUT
+    cout << string(centerOffset, ' ') << CYAN << "╭────────────────────────────────────────────────────────────────╮" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│" << RESET << string(28, ' ') << BOLD << WHITE << "Admin Options" << RESET << string(23, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "├─────┬──────────────────────────────────────────────────────────┤" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│ " << BOLD << WHITE << "No" << RESET << "  " << CYAN << "│" << RESET << string(4, ' ') << BOLD << WHITE << "Options" << RESET << string(47, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "╞═════╪══════════════════════════════════════════════════════════╡" << RESET << endl;
+    
+    // Option 1 - Manage Students
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "1" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << GREEN << "👥" << RESET << " " << GREEN << "Manage Students" << RESET;
+    cout << string(39, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Option 2 - Import Excel Data
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "2" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << BLUE << "📁" << RESET << " " << BLUE << "Import Excel Data" << RESET;
+    cout << string(37, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Option 3 - Export Grade Report
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "3" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << YELLOW << "📈" << RESET << " " << YELLOW << "Export Grade Report" << RESET;
+    cout << string(35, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Option 4 - Backup Data
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "4" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << MAGENTA << "💾" << RESET << " " << MAGENTA << "Backup Data" << RESET;
+    cout << string(43, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Option 5 - Sign Out
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "5" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << RED << "🚪" << RESET << " " << RED << "Sign Out" << RESET;
+    cout << string(46, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "╰─────┴──────────────────────────────────────────────────────────╯" << RESET << endl;
     cout << endl;
 }
-
 
 // Enhanced Student Menu
 void MenuUtils::printStudentMenu() {
     printStudentDashboard();
     
-    cout << endl;
-    cout << string(30, ' ') << "┌─────┬─────────────────────────────────────────┐" << endl;
-    cout << string(30, ' ') << "│ No  │            Student Options              │" << endl;
-    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
-    cout << string(30, ' ') << "│ 1   │ " << GREEN << "🔍 Search Your Data                     " << RESET << "│" << endl;
-    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
-    cout << string(30, ' ') << "│ 2   │ " << BLUE << "📊 View Your Grades                     " << RESET << "│" << endl;
-    cout << string(30, ' ') << "├─────┼─────────────────────────────────────────┤" << endl;
-    cout << string(30, ' ') << "│ 3   │ " << RED << "🚪 Sign Out                             " << RESET << "│" << endl;
-    cout << string(30, ' ') << "└─────┴─────────────────────────────────────────┘" << endl;
+    int consoleWidth = 120; // Adjust this to your console width
+    int menuBoxWidth = 64;
+    int centerOffset = (consoleWidth - menuBoxWidth) / 2;
+    
+    // Enhanced menu table with cyberpunk styling and colors - FIXED LAYOUT
+    cout << string(centerOffset, ' ') << CYAN << "╭────────────────────────────────────────────────────────────────╮" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│" << RESET << string(27, ' ') << BOLD << WHITE << "Student Options" << RESET << string(22, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "├─────┬──────────────────────────────────────────────────────────┤" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "│ " << BOLD << WHITE << "No" << RESET << "  " << CYAN << "│" << RESET << string(4, ' ') << BOLD << WHITE << "Options" << RESET << string(47, ' ') << CYAN << "│" << RESET << endl;
+    cout << string(centerOffset, ' ') << CYAN << "╞═════╪══════════════════════════════════════════════════════════╡" << RESET << endl;
+    
+    // Admin Login with enhanced styling
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "1" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << GREEN << "🔍" << RESET << " " << GREEN << "Search Your Data" << RESET;
+    cout << string(38, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Student Login
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "2" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << BLUE << "📊" << RESET << " " << BLUE << "View Your Grades" << RESET;
+    cout << string(38, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "├─────┼──────────────────────────────────────────────────────────┤" << RESET << endl;
+    
+    // Exit option
+    cout << string(centerOffset, ' ') << CYAN << "│ " << YELLOW << "3" << RESET << "   " << CYAN << "│ " << RESET;
+    cout << RED << "🚪" << RESET << " " << RED << "Sign Out" << RESET;
+    cout << string(46, ' ') << CYAN << "│" << RESET << endl;
+    
+    cout << string(centerOffset, ' ') << CYAN << "╰─────┴──────────────────────────────────────────────────────────╯" << RESET << endl;
     cout << endl;
 }
 
@@ -328,6 +415,7 @@ void MenuUtils::printThankYou() {
     #endif
 }
 
+
 // Display methods
 void MenuUtils::displayTable(const std::vector<Student>& students) {
     if (students.empty()) {
@@ -336,7 +424,6 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
     }
     
     Table table;
-    // FIXED: Add all columns in correct order including Email
     table.add_row({"ID", "Name", "Age", "Gender", "Email", "Average", "Grade", "GPA", "Remark"});
     
     for (const auto& student : students) {
@@ -345,7 +432,7 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
             student.getName(),
             to_string(student.getAge()),
             student.getGender(),
-            student.getEmail(),  // FIXED: Added missing email column
+            student.getEmail(),
             to_string(static_cast<int>(student.getAverageScore() * 100) / 100.0),
             student.getLetterGrade(),
             to_string(student.getGpa()),
@@ -567,7 +654,7 @@ int MenuUtils::getMenuChoice(int maxOptions) {
         if (cin.fail() || choice < 1 || choice > maxOptions) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            printError("Invalid choice! Please enter a number between 1 and " + to_string(maxOptions));
+            cout << string(35, ' ') << RED << "❌ Invalid choice! Please enter a number between 1 and " << to_string(maxOptions) << RESET << endl;
         } else {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return choice;

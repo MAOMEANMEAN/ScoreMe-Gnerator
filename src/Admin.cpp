@@ -3,12 +3,25 @@
 #include "ExcelUtil.hpp"
 #include "GradeUtil.hpp"
 #include <iostream>
-#include <algorithm>
+#include <algorithm>  // Make sure this is included
 #include <fstream>
+#include <set>
+
+// Add these includes for file dialog
+#ifdef _WIN32
+    #include <windows.h>
+    #include <commdlg.h>
+    #include <shlobj.h>
+#else
+    #include <unistd.h>
+    #include <sys/wait.h>
+#endif
+
+using namespace std;  // Add this to avoid std:: prefix issues
 
 // Static member definitions
-const std::string Admin::DEFAULT_ADMIN_USERNAME = "scoremepro";
-const std::string Admin::DEFAULT_ADMIN_PASSWORD = "prome123";
+const std::string Admin::DEFAULT_ADMIN_USERNAME = "scoreme.pro";
+const std::string Admin::DEFAULT_ADMIN_PASSWORD = "prome@123";
 
 // Constructors
 Admin::Admin() : Person(DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, "Administrator") {}
@@ -38,7 +51,7 @@ void Admin::showMenu() {
     
     std::vector<std::string> adminMenuOptions = {
         "Student Management (Limited)",
-        "System Information", 
+        "System Information",
         "Help & Documentation",
         "Sign Out"
     };
@@ -59,8 +72,8 @@ void Admin::showMenu() {
             break;
         case 3:
             MenuUtils::printInfo("Default Admin Credentials:");
-            MenuUtils::printInfo("Username: scoremepro");
-            MenuUtils::printInfo("Password: prome123");
+            MenuUtils::printInfo("Username: scoreme.pro");
+            MenuUtils::printInfo("Password: prome@123");
             break;
         case 4:
             MenuUtils::printInfo("Signing out from admin dashboard...");
@@ -75,48 +88,242 @@ void Admin::showMenu() {
     }
 }
 
+// ENHANCED: showMenuWithData with improved import functionality
 void Admin::showMenuWithData(std::vector<Student>& students) {
     int choice;
     
     do {
         MenuUtils::clearScreen();
         MenuUtils::printAdminMenu();
-        choice = MenuUtils::getMenuChoice(6);
+        
+        // Show current data status
+        if (!students.empty()) {
+            MenuUtils::printInfo("📊 Current database: " + to_string(students.size()) + " students loaded");
+        } else {
+            MenuUtils::printWarning("📊 No student data loaded - consider importing from Excel file");
+        }
+        
+        choice = MenuUtils::getMenuChoice(5);
         
         switch (choice) {
             case 1:
                 manageStudents(students);
                 break;
-            case 2:
-                importExcelData(students, "data/students.xlsx");
-                MenuUtils::pauseScreen();
+                
+            case 2: {
+                // Enhanced import with multiple options
+                // MenuUtils::clearScreen();
+                // MenuUtils::printImportInstructions();
+                // MenuUtils::pauseScreen();
+                
+                // Show additional import options
+                std::vector<std::string> importMainOptions = {
+                    "Import Excel File (Browse Computer)",
+                    "Show Recent Files",
+                    "Back to Admin Menu"
+                };
+                
+                MenuUtils::printMenu(importMainOptions);
+                int importChoice = MenuUtils::getMenuChoice(3);
+                
+                switch (importChoice) {
+                    case 1:
+                        importExcelData(students, "data/students.xlsx");
+                        break;
+                    case 2:
+                        showRecentFiles();
+                        MenuUtils::pauseScreen();
+                        break;
+                    case 3:
+                        break; // Back to admin menu
+                }
+                
+                if (importChoice != 3) {
+                    MenuUtils::pauseScreen();
+                }
                 break;
+            }
+            
             case 3:
                 exportData(students, "data/grade_report.xlsx");
                 MenuUtils::pauseScreen();
                 break;
+                
             case 4:
                 backupData(students);
                 MenuUtils::pauseScreen();
                 break;
+                
             case 5:
                 MenuUtils::printInfo("Signing out from admin dashboard...");
                 return;
-            case 6:
-                MenuUtils::printInfo("Returning to main menu...");
-                return;
         }
         
-        if (choice != 5 && choice != 6) {
+        if (choice != 5) {
             if (!MenuUtils::askContinue()) {
                 break;
             }
         }
-    } while (choice != 5 && choice != 6);
+    } while (choice != 5);
 }
 
 std::string Admin::getRole() const {
     return "Administrator";
+}
+
+// NEW: Function to reorder all student IDs sequentially
+void Admin::reorderStudentIds(std::vector<Student>& students) {
+    // Sort students by current ID to maintain some order
+    sort(students.begin(), students.end(),
+        [](const Student& a, const Student& b) {
+            string idA = a.getStudentId();
+            string idB = b.getStudentId();
+            
+            // Extract numeric part and compare
+            int numA = 0, numB = 0;
+            if (idA.length() >= 6 && idA.substr(0, 3) == "STU") {
+                try { numA = stoi(idA.substr(3)); } catch(...) {}
+            }
+            if (idB.length() >= 6 && idB.substr(0, 3) == "STU") {
+                try { numB = stoi(idB.substr(3)); } catch(...) {}
+            }
+            
+            return numA < numB;
+        });
+    
+    // Reassign IDs sequentially starting from STU001
+    for (size_t i = 0; i < students.size(); ++i) {
+        int newIdNum = static_cast<int>(i + 1);
+        string newId = "STU" + string(3 - to_string(newIdNum).length(), '0') + to_string(newIdNum);
+        
+        // Find the student in the vector and update their ID
+        // Note: This requires a setStudentId method in the Student class
+        // If this method doesn't exist, you'll need to add it to Student.hpp
+        students[i].setStudentId(newId);
+    }
+}
+
+// UPDATED: Generate next sequential Student ID
+std::string Admin::generateNextStudentId(const std::vector<Student>& students) {
+    // Simply use the next number in sequence
+    int nextId = static_cast<int>(students.size()) + 1;
+    
+    // Generate ID with proper formatting (STU001, STU002, etc.)
+    string nextIdStr = "STU" + string(3 - to_string(nextId).length(), '0') + to_string(nextId);
+    return nextIdStr;
+}
+
+// Gmail validation function
+bool Admin::isValidGmail(const std::string& email) {
+    return email.find("gmail.com") != string::npos;
+}
+
+// Save credentials to separate Excel file
+void Admin::saveCredentialsToExcel(const std::vector<Student>& students) {
+    try {
+        ExcelUtils::writeCredentialsExcel("data/student_credentials.xlsx", students);
+        MenuUtils::printInfo("Student credentials saved to data/student_credentials.xlsx");
+    } catch (const exception& e) {
+        MenuUtils::printWarning("Failed to save credentials: " + string(e.what()));
+    }
+}
+
+// NEW: File dialog implementation
+std::string Admin::openFileDialog() {
+#ifdef _WIN32
+    // Windows file dialog
+    OPENFILENAMEA ofn;
+    char szFile[260] = {0};
+    
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = "Excel Files\0*.xlsx;*.xls\0All Files\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    ofn.lpstrTitle = "Select Excel File to Import";
+    
+    if (GetOpenFileNameA(&ofn)) {
+        return string(szFile);
+    }
+    return ""; // User cancelled
+    
+#else
+    // Linux/Mac - use zenity or kdialog if available
+    MenuUtils::printInfo("Opening file selection dialog...");
+    
+    // Try zenity first (GNOME)
+    string command = "zenity --file-selection --title='Select Excel File' --file-filter='Excel files (xlsx,xls) | *.xlsx *.xls' 2>/dev/null";
+    FILE* pipe = popen(command.c_str(), "r");
+    
+    if (pipe != nullptr) {
+        char buffer[1024];
+        string result = "";
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            result += buffer;
+        }
+        pclose(pipe);
+        
+        // Remove newline from result
+        if (!result.empty() && result.back() == '\n') {
+            result.pop_back();
+        }
+        
+        if (!result.empty()) {
+            return result;
+        }
+    }
+    
+    // Try kdialog (KDE)
+    command = "kdialog --getopenfilename ~ 'Excel files (*.xlsx *.xls)' 2>/dev/null";
+    pipe = popen(command.c_str(), "r");
+    
+    if (pipe != nullptr) {
+        char buffer[1024];
+        string result = "";
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            result += buffer;
+        }
+        pclose(pipe);
+        
+        // Remove newline from result
+        if (!result.empty() && result.back() == '\n') {
+            result.pop_back();
+        }
+        
+        if (!result.empty()) {
+            return result;
+        }
+    }
+    
+    // Fallback: ask user to enter path manually
+    MenuUtils::printWarning("File dialog not available. Please enter the file path manually.");
+    return MenuUtils::getStringInput("Enter full path to Excel file: ");
+#endif
+}
+
+// NEW: Enhanced method to show recent files
+void Admin::showRecentFiles() {
+    MenuUtils::printInfo("Common Excel file locations:");
+    MenuUtils::printInfo("• Desktop: ~/Desktop/ or %USERPROFILE%\\Desktop\\");
+    MenuUtils::printInfo("• Downloads: ~/Downloads/ or %USERPROFILE%\\Downloads\\");
+    MenuUtils::printInfo("• Documents: ~/Documents/ or %USERPROFILE%\\Documents\\");
+    MenuUtils::printInfo("• Current directory: ./");
+    
+    // Show existing data directory files
+    MenuUtils::printInfo("\nFiles in data directory:");
+    
+#ifdef _WIN32
+    string command = "dir /b data\\*.xlsx 2>nul";
+#else
+    string command = "ls -la data/*.xlsx 2>/dev/null || echo 'No Excel files found in data directory'";
+#endif
+    
+    system(command.c_str());
 }
 
 // Admin-specific methods
@@ -126,7 +333,7 @@ void Admin::manageStudents(std::vector<Student>& students) {
         MenuUtils::clearScreen();
         MenuUtils::printHeader("STUDENT MANAGEMENT");
         
-        std::vector<std::string> studentMenu = {
+        vector<string> studentMenu = {
             "View All Students",
             "Add New Student",
             "Edit Student Info",
@@ -184,56 +391,64 @@ void Admin::viewAllStudents(const std::vector<Student>& students) {
 void Admin::addNewStudent(std::vector<Student>& students) {
     MenuUtils::printHeader("ADD NEW STUDENT");
     
-    std::string studentId = MenuUtils::getStringInput("Student ID: ");
-    if (!isValidStudentId(studentId, students)) {
-        MenuUtils::printError("Student ID already exists!");
-        return;
-    }
+    // Generate next sequential Student ID
+    string studentId = generateNextStudentId(students);
+    MenuUtils::printInfo("Auto-generated Student ID : " + studentId);
     
-    std::string name = MenuUtils::getStringInput("Student Name: ");
+    string name = MenuUtils::getStringInput("Student Name : ");
     if (isStudentExists(name, students)) {
         MenuUtils::printError("Student with this name already exists!");
         return;
     }
     
-    std::string username = MenuUtils::getStringInput("Username for login: ");
-    std::string password = MenuUtils::getStringInput("Password for login: ");
+    string username = MenuUtils::getStringInput("Username for login : ");
+    string password = MenuUtils::getStringInput("Password for login : ");
     
-    int age = MenuUtils::getIntInput("Age: ");
-    std::string gender = MenuUtils::getStringInput("Gender: ");
-    std::string dob = MenuUtils::getStringInput("Date of Birth (YYYY-MM-DD): ");
-    std::string email = MenuUtils::getStringInput("Email: ");
+    int age = MenuUtils::getIntInput("Age : ");
+    string gender = MenuUtils::getStringInput("Gender : ");
+    string dob = MenuUtils::getStringInput("Date of Birth (YYYY-MM-DD) : ");
     
-    std::vector<double> scores(7);
-    std::vector<std::string> subjects = GradeUtil::getSubjectNames();
+    // Gmail validation
+    string email;
+    do {
+        email = MenuUtils::getStringInput("Gmail : ");
+        if (!isValidGmail(email)) {
+            MenuUtils::printError("Invalid email! Email must contain 'gmail.com'");
+        }
+    } while (!isValidGmail(email));
     
-    MenuUtils::printInfo("Enter scores for all subjects:");
+    vector<double> scores(7);
+    vector<string> subjects = GradeUtil::getSubjectNames();
+    
+    MenuUtils::printInfo("Enter scores for all subjects :");
     for (size_t i = 0; i < subjects.size(); ++i) {
-        scores[i] = MenuUtils::getDoubleInput(subjects[i] + " score: ");
+        scores[i] = MenuUtils::getDoubleInput(subjects[i] + " score : ");
         if (!GradeUtil::isValidScore(scores[i])) {
             MenuUtils::printError("Invalid score! Score must be between 0-100.");
             i--; // Retry current subject
         }
     }
     
-    // Create student with login credentials
+    // Create student with auto-generated ID and login credentials
     students.emplace_back(username, password, studentId, name, age, gender, dob, email, scores);
     MenuUtils::printSuccess("Student added successfully!");
-    MenuUtils::printInfo("Login credentials - Username: " + username + ", Password: " + password);
+    MenuUtils::printInfo("Student ID: " + studentId);
+    MenuUtils::printInfo("Login credentials - Username : " + username + ", Password : " + password);
     
     // Save updated data to Excel immediately
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
-        MenuUtils::printInfo("Data saved to Excel file.");
-    } catch (const std::exception& e) {
-        MenuUtils::printWarning("Student added but failed to save to Excel: " + std::string(e.what()));
+        saveCredentialsToExcel(students);
+        MenuUtils::printInfo("Data saved to Excel files.");
+    } catch (const exception& e) {
+        MenuUtils::printWarning("Student added but failed to save to Excel : " + string(e.what()));
     }
 }
 
 void Admin::editStudentInfo(std::vector<Student>& students) {
     MenuUtils::printHeader("EDIT STUDENT INFO");
     
-    std::string searchId = MenuUtils::getStringInput("Enter Student ID to edit: ");
+    string searchId = MenuUtils::getStringInput("Enter Student ID to edit : ");
     Student* student = findStudentById(students, searchId);
     
     if (!student) {
@@ -241,10 +456,10 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
         return;
     }
     
-    MenuUtils::printInfo("Current student info:");
+    MenuUtils::printInfo("Current student info :");
     MenuUtils::displayStudentDetails(*student);
     
-    std::vector<std::string> editMenu = {
+    vector<string> editMenu = {
         "Edit Name",
         "Edit Age",
         "Edit Gender",
@@ -259,36 +474,42 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
     
     switch (choice) {
         case 1: {
-            std::string newName = MenuUtils::getStringInput("New name: ");
+            string newName = MenuUtils::getStringInput("New name : ");
             student->setName(newName);
             break;
         }
         case 2: {
-            int newAge = MenuUtils::getIntInput("New age: ");
+            int newAge = MenuUtils::getIntInput("New age : ");
             student->setAge(newAge);
             break;
         }
         case 3: {
-            std::string newGender = MenuUtils::getStringInput("New gender: ");
+            string newGender = MenuUtils::getStringInput("New gender : ");
             student->setGender(newGender);
             break;
         }
         case 4: {
-            std::string newDob = MenuUtils::getStringInput("New date of birth (YYYY-MM-DD): ");
+            string newDob = MenuUtils::getStringInput("New date of birth (YYYY-MM-DD) : ");
             student->setDateOfBirth(newDob);
             break;
         }
         case 5: {
-            std::string newEmail = MenuUtils::getStringInput("New email: ");
+            string newEmail;
+            do {
+                newEmail = MenuUtils::getStringInput("New Gmail : ");
+                if (!isValidGmail(newEmail)) {
+                    MenuUtils::printError("Invalid email! Email must contain 'gmail.com'");
+                }
+            } while (!isValidGmail(newEmail));
             student->setEmail(newEmail);
             break;
         }
         case 6: {
-            std::vector<double> newScores(7);
-            std::vector<std::string> subjects = GradeUtil::getSubjectNames();
+            vector<double> newScores(7);
+            vector<string> subjects = GradeUtil::getSubjectNames();
             
             for (size_t i = 0; i < subjects.size(); ++i) {
-                newScores[i] = MenuUtils::getDoubleInput(subjects[i] + " new score: ");
+                newScores[i] = MenuUtils::getDoubleInput(subjects[i] + " New score : ");
                 if (!GradeUtil::isValidScore(newScores[i])) {
                     MenuUtils::printError("Invalid score! Score must be between 0-100.");
                     i--; // Retry current subject
@@ -307,35 +528,50 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
         // Save updated data to Excel
         try {
             ExcelUtils::writeExcel("data/students.xlsx", students);
-            MenuUtils::printInfo("Data saved to Excel file.");
-        } catch (const std::exception& e) {
-            MenuUtils::printWarning("Student updated but failed to save to Excel: " + std::string(e.what()));
+            saveCredentialsToExcel(students);
+            MenuUtils::printInfo("Data saved to Excel files.");
+        } catch (const exception& e) {
+            MenuUtils::printWarning("Student updated but failed to save to Excel: " + string(e.what()));
         }
     }
 }
 
+// UPDATED: Delete student with ID reordering
 void Admin::deleteStudent(std::vector<Student>& students) {
     MenuUtils::printHeader("DELETE STUDENT");
     
-    std::string searchId = MenuUtils::getStringInput("Enter Student ID to delete: ");
-    auto it = std::find_if(students.begin(), students.end(),
+    string searchId = MenuUtils::getStringInput("Enter Student ID to delete: ");
+    auto it = find_if(students.begin(), students.end(),
         [&searchId](const Student& s) { return s.getStudentId() == searchId; });
     
     if (it != students.end()) {
         MenuUtils::printInfo("Student found:");
         MenuUtils::displayStudentDetails(*it);
         
-        std::string confirm = MenuUtils::getStringInput("Are you sure you want to delete this student? (yes/no): ");
+        string confirm = MenuUtils::getStringInput("Are you sure you want to delete this student? (yes/no): ");
         if (confirm == "yes" || confirm == "y" || confirm == "Y") {
+            // Remove the student
             students.erase(it);
+            
+            // Reorder all student IDs to maintain sequential numbering
+            reorderStudentIds(students);
+            
             MenuUtils::printSuccess("Student deleted successfully!");
+            MenuUtils::printInfo("All student IDs have been reordered to maintain sequence.");
+            
+            // Show updated student list
+            if (!students.empty()) {
+                MenuUtils::printInfo("Updated student list:");
+                MenuUtils::displayTable(students);
+            }
             
             // Save updated data to Excel
             try {
                 ExcelUtils::writeExcel("data/students.xlsx", students);
-                MenuUtils::printInfo("Data saved to Excel file.");
-            } catch (const std::exception& e) {
-                MenuUtils::printWarning("Student deleted but failed to save to Excel: " + std::string(e.what()));
+                saveCredentialsToExcel(students);
+                MenuUtils::printInfo("Data saved to Excel files.");
+            } catch (const exception& e) {
+                MenuUtils::printWarning("Student deleted but failed to save to Excel: " + string(e.what()));
             }
         } else {
             MenuUtils::printInfo("Deletion cancelled.");
@@ -348,7 +584,7 @@ void Admin::deleteStudent(std::vector<Student>& students) {
 void Admin::searchStudent(const std::vector<Student>& students) {
     MenuUtils::printHeader("SEARCH STUDENT");
     
-    std::string searchTerm = MenuUtils::getStringInput("Enter Student ID or Name: ");
+    string searchTerm = MenuUtils::getStringInput("Enter Student ID or Name: ");
     bool found = false;
     
     for (const auto& student : students) {
@@ -367,7 +603,7 @@ void Admin::searchStudent(const std::vector<Student>& students) {
 void Admin::showFailingStudents(const std::vector<Student>& students) {
     MenuUtils::printHeader("FAILING STUDENTS");
     
-    std::vector<Student> failingStudents;
+    vector<Student> failingStudents;
     for (const auto& student : students) {
         if (!student.hasPassingGrade()) {
             failingStudents.push_back(student);
@@ -384,44 +620,122 @@ void Admin::showFailingStudents(const std::vector<Student>& students) {
 void Admin::sortStudentsByScore(std::vector<Student>& students) {
     MenuUtils::printHeader("SORT STUDENTS BY SCORE");
     
-    std::string order = MenuUtils::getStringInput("Sort order (asc/desc): ");
+    string order = MenuUtils::getStringInput("Sort order (asc/desc): ");
     
     if (order == "asc") {
-        std::sort(students.begin(), students.end(),
+        sort(students.begin(), students.end(),
             [](const Student& a, const Student& b) {
                 return a.getAverageScore() < b.getAverageScore();
             });
     } else {
-        std::sort(students.begin(), students.end(),
+        sort(students.begin(), students.end(),
             [](const Student& a, const Student& b) {
                 return a.getAverageScore() > b.getAverageScore();
             });
     }
     
+    // After sorting, reorder IDs to maintain sequence
+    reorderStudentIds(students);
+    
     MenuUtils::printSuccess("Students sorted successfully!");
+    MenuUtils::printInfo("Student IDs have been reordered to maintain sequence.");
     MenuUtils::displayTable(students);
     
     // Save sorted data to Excel
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
-        MenuUtils::printInfo("Sorted data saved to Excel file.");
-    } catch (const std::exception& e) {
-        MenuUtils::printWarning("Students sorted but failed to save to Excel: " + std::string(e.what()));
+        saveCredentialsToExcel(students);
+        MenuUtils::printInfo("Sorted data saved to Excel files.");
+    } catch (const exception& e) {
+        MenuUtils::printWarning("Students sorted but failed to save to Excel: " + string(e.what()));
     }
 }
 
-// Data management methods - Updated to use only XLSX
-void Admin::importExcelData(std::vector<Student>& students, const std::string& filename) {
+// ENHANCED: importExcelData with file dialog support
+void Admin::importExcelData(std::vector<Student>& students, const std::string& defaultFilename) {
     MenuUtils::printHeader("IMPORT EXCEL DATA");
     
-    try {
-        // First, make sure we have current data saved
-        ExcelUtils::writeExcel(filename, students);
-        MenuUtils::printInfo("Current student data has been written to " + filename);
+    // Show import options
+    vector<string> importOptions = {
+        "Browse and Select File from Computer",
+        "Use Default File (data/students.xlsx)",
+        "Cancel Import"
+    };
+    
+    MenuUtils::printInfo("Import Options:");
+    MenuUtils::printMenu(importOptions);
+    
+    int choice = MenuUtils::getMenuChoice(3);
+    string selectedFile;
+    
+    switch (choice) {
+        case 1: {
+            // File browser option
+            selectedFile = openFileDialog();
+            if (selectedFile.empty()) {
+                MenuUtils::printWarning("No file selected. Import cancelled.");
+                return;
+            }
+            MenuUtils::printInfo("Selected file: " + selectedFile);
+            break;
+        }
+        case 2: {
+            // Default file
+            selectedFile = defaultFilename;
+            break;
+        }
+        case 3: {
+            MenuUtils::printInfo("Import cancelled.");
+            return;
+        }
+        default: {
+            MenuUtils::printError("Invalid choice!");
+            return;
+        }
+    }
+    
+    // Validate file exists
+    if (!ExcelUtils::fileExists(selectedFile)) {
+        MenuUtils::printError("File does not exist: " + selectedFile);
         
-        if (ExcelUtils::importStudentData(filename, students)) {
-            MenuUtils::printSuccess("Data imported successfully from " + filename + "!");
-            MenuUtils::printInfo("Total students now: " + std::to_string(students.size()));
+        // Offer to create sample file
+        string createSample = MenuUtils::getStringInput("Would you like to create a sample Excel file? (y/n): ");
+        if (createSample == "y" || createSample == "Y") {
+            try {
+                // Create sample data
+                auto sampleStudents = Student::createSampleData();
+                ExcelUtils::writeExcel(selectedFile, sampleStudents);
+                saveCredentialsToExcel(sampleStudents);
+                MenuUtils::printSuccess("Sample Excel file created: " + selectedFile);
+                MenuUtils::printInfo("You can now edit this file and re-import it.");
+            } catch (const exception& e) {
+                MenuUtils::printError("Failed to create sample file: " + string(e.what()));
+            }
+        }
+        return;
+    }
+    
+    try {
+        // Show file information
+        MenuUtils::printInfo("Importing from: " + selectedFile);
+        MenuUtils::showLoadingAnimation("Reading Excel file", 1500);
+        
+        // Backup current data before import
+        if (!students.empty()) {
+            string backupChoice = MenuUtils::getStringInput("Backup current data before import? (y/n): ");
+            if (backupChoice == "y" || backupChoice == "Y") {
+                backupData(students);
+            }
+        }
+        
+        // Import the data
+        if (ExcelUtils::importStudentData(selectedFile, students)) {
+            // After import, reorder IDs to ensure proper sequence
+            reorderStudentIds(students);
+            
+            MenuUtils::printSuccess("Data imported successfully from " + selectedFile + "!");
+            MenuUtils::printInfo("Total students imported: " + to_string(students.size()));
+            MenuUtils::printInfo("Student IDs have been reordered to maintain sequence.");
             
             // Update all grades after import
             for (auto& student : students) {
@@ -429,24 +743,58 @@ void Admin::importExcelData(std::vector<Student>& students, const std::string& f
             }
             MenuUtils::printInfo("All grades have been recalculated!");
             
-            // Show updated data
+            // Save credentials after import
+            saveCredentialsToExcel(students);
+            
+            // Show preview of imported data
             if (!students.empty()) {
-                MenuUtils::printInfo("Updated student data:");
-                MenuUtils::displayTable(students);
+                MenuUtils::printInfo("Preview of imported data (first 5 students):");
+                vector<Student> preview;
+                // FIXED LINE 799 - using safer alternative to std::min
+                int previewCount = (students.size() < 5) ? static_cast<int>(students.size()) : 5;
+                for (int i = 0; i < previewCount; i++) {
+                    preview.push_back(students[i]);
+                }
+                MenuUtils::displayTable(preview);
+                
+                if (students.size() > 5) {
+                    MenuUtils::printInfo("... and " + to_string(students.size() - 5) + " more students");
+                }
             }
+            
+            // Auto-save to default location
+            try {
+                ExcelUtils::writeExcel("data/students.xlsx", students);
+                MenuUtils::printInfo("Data also saved to default location: data/students.xlsx");
+            } catch (...) {
+                MenuUtils::printWarning("Could not save to default location.");
+            }
+            
         } else {
-            MenuUtils::printError("Failed to import data from " + filename);
-            MenuUtils::printInfo("Excel file has been created with current data for future use.");
+            MenuUtils::printError("Failed to import data from " + selectedFile);
+            
+            // Show helpful information about Excel format
+            MenuUtils::printInfo("Excel file should contain columns:");
+            auto headers = ExcelUtils::getExcelHeaders();
+            for (size_t i = 0; i < headers.size() && i < 10; i++) {
+                MenuUtils::printInfo("  " + to_string(i+1) + ". " + headers[i]);
+            }
+            MenuUtils::printInfo("Note: Username and Password are stored separately in credentials file");
         }
-    } catch (const std::exception& e) {
-        MenuUtils::printError("Import error: " + std::string(e.what()));
-        MenuUtils::printInfo("Creating Excel file with current data...");
         
-        try {
-            ExcelUtils::writeExcel(filename, students);
-            MenuUtils::printSuccess("Excel file created successfully!");
-        } catch (...) {
-            MenuUtils::printError("Failed to create Excel file.");
+    } catch (const exception& e) {
+        MenuUtils::printError("Import error: " + string(e.what()));
+        MenuUtils::printInfo("Please check if the Excel file format is correct.");
+        
+        // Offer format validation
+        string validateChoice = MenuUtils::getStringInput("Would you like to validate the file format? (y/n): ");
+        if (validateChoice == "y" || validateChoice == "Y") {
+            if (ExcelUtils::validateExcelFormat(selectedFile)) {
+                MenuUtils::printSuccess("File format appears to be correct.");
+            } else {
+                MenuUtils::printError("File format validation failed.");
+                MenuUtils::printInfo("Please ensure the Excel file has the correct column headers.");
+            }
         }
     }
 }
@@ -461,7 +809,7 @@ void Admin::exportData(const std::vector<Student>& students, const std::string& 
     
     try {
         // Ensure all students have updated grades
-        std::vector<Student> updatedStudents = students;
+        vector<Student> updatedStudents = students;
         for (auto& student : updatedStudents) {
             student.updateAllGrades();
         }
@@ -470,9 +818,12 @@ void Admin::exportData(const std::vector<Student>& students, const std::string& 
         MenuUtils::printSuccess("Grade report exported successfully to " + filename + "!");
         
         // Also create a regular Excel file
-        std::string regularFilename = "data/students_export.xlsx";
+        string regularFilename = "data/students_export.xlsx";
         ExcelUtils::writeExcel(regularFilename, updatedStudents);
         MenuUtils::printInfo("Regular Excel file also created: " + regularFilename);
+        
+        // Export credentials
+        saveCredentialsToExcel(updatedStudents);
         
         // Show summary
         int totalStudents = static_cast<int>(students.size());
@@ -482,12 +833,12 @@ void Admin::exportData(const std::vector<Student>& students, const std::string& 
         }
         
         MenuUtils::printInfo("Export Summary:");
-        MenuUtils::printInfo("- Total students exported: " + std::to_string(totalStudents));
-        MenuUtils::printInfo("- Passing students (50+): " + std::to_string(passingStudents));
-        MenuUtils::printInfo("- Files created: " + filename + ", " + regularFilename);
+        MenuUtils::printInfo("- Total students exported: " + to_string(totalStudents));
+        MenuUtils::printInfo("- Passing students (50+): " + to_string(passingStudents));
+        MenuUtils::printInfo("- Files created: " + filename + ", " + regularFilename + ", student_credentials.xlsx");
         
-    } catch (const std::exception& e) {
-        MenuUtils::printError("Failed to export data: " + std::string(e.what()));
+    } catch (const exception& e) {
+        MenuUtils::printError("Failed to export data: " + string(e.what()));
     }
 }
 
@@ -504,37 +855,40 @@ void Admin::backupData(const std::vector<Student>& students) {
         ExcelUtils::createBackup("students.xlsx", students);
         
         // Also create a simple backup in the data folder
-        std::string simpleBackup = "data/students_backup.xlsx";
+        string simpleBackup = "data/students_backup.xlsx";
         ExcelUtils::writeExcel(simpleBackup, students);
+        
+        // Backup credentials
+        saveCredentialsToExcel(students);
         
         MenuUtils::printSuccess("Data backup created successfully!");
         MenuUtils::printInfo("Backup files created in data/backups/ and data/ directories");
-        MenuUtils::printInfo("Total students backed up: " + std::to_string(students.size()));
+        MenuUtils::printInfo("Total students backed up: " + to_string(students.size()));
         
-    } catch (const std::exception& e) {
-        MenuUtils::printError("Failed to create backup: " + std::string(e.what()));
+    } catch (const exception& e) {
+        MenuUtils::printError("Failed to create backup: " + string(e.what()));
     }
 }
 
 // Utility methods
 bool Admin::isValidStudentId(const std::string& id, const std::vector<Student>& students) {
-    return std::find_if(students.begin(), students.end(),
+    return find_if(students.begin(), students.end(),
         [&id](const Student& s) { return s.getStudentId() == id; }) == students.end();
 }
 
 bool Admin::isStudentExists(const std::string& name, const std::vector<Student>& students) {
-    return std::find_if(students.begin(), students.end(),
+    return find_if(students.begin(), students.end(),
         [&name](const Student& s) { return s.getName() == name; }) != students.end();
 }
 
 Student* Admin::findStudentById(std::vector<Student>& students, const std::string& id) {
-    auto it = std::find_if(students.begin(), students.end(),
+    auto it = find_if(students.begin(), students.end(),
         [&id](const Student& s) { return s.getStudentId() == id; });
     return (it != students.end()) ? &(*it) : nullptr;
 }
 
 Student* Admin::findStudentByName(std::vector<Student>& students, const std::string& name) {
-    auto it = std::find_if(students.begin(), students.end(),
+    auto it = find_if(students.begin(), students.end(),
         [&name](const Student& s) { return s.getName() == name; });
     return (it != students.end()) ? &(*it) : nullptr;
 }

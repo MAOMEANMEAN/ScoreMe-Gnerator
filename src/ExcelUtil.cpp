@@ -12,7 +12,7 @@
 
 using namespace std;
 
-// Main Excel operations
+// Main Excel operations (WITHOUT credentials)
 void ExcelUtils::writeExcel(const std::string& filename, const std::vector<Student>& students) {
     try {
         // Create directory if it doesn't exist
@@ -23,7 +23,7 @@ void ExcelUtils::writeExcel(const std::string& filename, const std::vector<Stude
         xlnt::worksheet ws = wb.active_sheet();
         ws.title("Student Grades");
 
-        // Write headers
+        // Write headers WITHOUT username and password
         auto headers = getExcelHeaders();
         for (size_t i = 0; i < headers.size(); ++i) {
             ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(i + 1), 1)).value(headers[i]);
@@ -32,7 +32,7 @@ void ExcelUtils::writeExcel(const std::string& filename, const std::vector<Stude
         // Format header row
         formatExcelHeader(ws);
 
-        // Write student data
+        // Write student data WITHOUT credentials
         for (size_t i = 0; i < students.size(); ++i) {
             writeStudentToExcel(ws, students[i], static_cast<int>(i + 2));
         }
@@ -43,6 +43,52 @@ void ExcelUtils::writeExcel(const std::string& filename, const std::vector<Stude
         
     } catch (const exception& e) {
         MenuUtils::printError("Error writing Excel file: " + string(e.what()));
+        throw; // Re-throw exception for caller to handle
+    }
+}
+
+// Separate credentials Excel file (ONLY username, password, basic info)
+void ExcelUtils::writeCredentialsExcel(const std::string& filename, const std::vector<Student>& students) {
+    try {
+        // Create directory if it doesn't exist
+        std::filesystem::path filePath(filename);
+        std::filesystem::create_directories(filePath.parent_path());
+
+        xlnt::workbook wb;
+        xlnt::worksheet ws = wb.active_sheet();
+        ws.title("Student Credentials");
+
+        // Write headers for credentials ONLY
+        auto credHeaders = getCredentialHeaders();
+        for (size_t i = 0; i < credHeaders.size(); ++i) {
+            ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(i + 1), 1)).value(credHeaders[i]);
+        }
+
+        // Format header row
+        for (int col = 1; col <= static_cast<int>(credHeaders.size()); ++col) {
+            auto cell = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), 1));
+            cell.font(xlnt::font().bold(true));
+        }
+
+        // Write credential data ONLY
+        for (size_t i = 0; i < students.size(); ++i) {
+            int row = static_cast<int>(i + 2);
+            int col = 1;
+            
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getStudentId());
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getName());
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getUsername());
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getPassword());
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getEmail());
+            ws.cell(xlnt::cell_reference(col++, row)).value(students[i].getFormattedTimestamp());
+        }
+
+        // Save Excel file
+        wb.save(filename);
+        MenuUtils::printSuccess("Credentials file '" + filename + "' created successfully!");
+        
+    } catch (const exception& e) {
+        MenuUtils::printError("Error writing credentials Excel file: " + string(e.what()));
         throw; // Re-throw exception for caller to handle
     }
 }
@@ -58,6 +104,8 @@ std::vector<Student> ExcelUtils::readExcelToVector(const std::string& filename) 
             MenuUtils::printInfo("Creating sample file with default data...");
             auto sampleStudents = Student::createSampleData();
             writeExcel(filename, sampleStudents);
+            // Also create credentials file
+            writeCredentialsExcel("data/student_credentials.xlsx", sampleStudents);
             return sampleStudents;
         }
 
@@ -70,13 +118,27 @@ std::vector<Student> ExcelUtils::readExcelToVector(const std::string& filename) 
             MenuUtils::printInfo("Excel file is empty, creating sample data...");
             auto sampleStudents = Student::createSampleData();
             writeExcel(filename, sampleStudents);
+            // Also create credentials file
+            writeCredentialsExcel("data/student_credentials.xlsx", sampleStudents);
             return sampleStudents;
         }
+
+        // Try to load credentials from separate file
+        std::map<std::string, std::pair<std::string, std::string>> credentialsMap;
+        loadCredentialsFromFile("data/student_credentials.xlsx", credentialsMap);
 
         // Skip header row and read data
         for (int rowNum = 2; rowNum <= static_cast<int>(ws.highest_row()); ++rowNum) {
             try {
                 Student student = readStudentFromExcel(ws, rowNum);
+                
+                // Set credentials from credentials file if available
+                auto credIt = credentialsMap.find(student.getStudentId());
+                if (credIt != credentialsMap.end()) {
+                    student.setUsername(credIt->second.first);
+                    student.setPassword(credIt->second.second);
+                }
+                
                 students.push_back(student);
             } catch (const exception& e) {
                 MenuUtils::printWarning("Error reading row " + to_string(rowNum) + ": " + e.what());
@@ -111,6 +173,9 @@ void ExcelUtils::readExcel(const std::string& filename) {
 void ExcelUtils::writeExcelWithTimestamp(const std::string& baseFilename, const std::vector<Student>& students) {
     string timestampFilename = generateTimestampFilename(baseFilename);
     writeExcel(timestampFilename, students);
+    // Also create credentials file with timestamp
+    string credTimestampFilename = generateTimestampFilename("student_credentials.xlsx");
+    writeCredentialsExcel("data/" + credTimestampFilename, students);
 }
 
 void ExcelUtils::createBackup(const std::string& sourceFilename, const std::vector<Student>& students) {
@@ -121,7 +186,12 @@ void ExcelUtils::createBackup(const std::string& sourceFilename, const std::vect
         string backupFilename = "data/backups/backup_" + generateTimestampFilename(sourceFilename);
         writeExcel(backupFilename, students);
         
+        // Also backup credentials
+        string credBackupFilename = "data/backups/backup_" + generateTimestampFilename("student_credentials.xlsx");
+        writeCredentialsExcel(credBackupFilename, students);
+        
         MenuUtils::printSuccess("Backup created: " + backupFilename);
+        MenuUtils::printSuccess("Credentials backup created: " + credBackupFilename);
         
     } catch (const exception& e) {
         MenuUtils::printError("Failed to create backup: " + string(e.what()));
@@ -163,13 +233,13 @@ void ExcelUtils::exportGradeReport(const std::string& filename, const std::vecto
         ws.cell("A5").value("Pass Rate: " + to_string(static_cast<int>(passRate * 100) / 100.0) + "%");
         ws.cell("A6").value("Class Average: " + to_string(static_cast<int>(classAverage * 100) / 100.0));
 
-        // Write headers starting from row 8
+        // Write headers starting from row 8 (WITHOUT credentials)
         auto headers = getExcelHeaders();
         for (size_t i = 0; i < headers.size(); ++i) {
             ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(i + 1), 8)).value(headers[i]);
         }
 
-        // Write student data
+        // Write student data WITHOUT credentials
         for (size_t i = 0; i < students.size(); ++i) {
             writeStudentToExcel(ws, students[i], static_cast<int>(i + 9));
         }
@@ -192,7 +262,9 @@ bool ExcelUtils::importStudentData(const std::string& filename, std::vector<Stud
             // Create the file with current student data for future imports
             MenuUtils::printInfo("Creating Excel file with current data for future use...");
             writeExcel(filename, students);
-            MenuUtils::printSuccess("Excel file created successfully!");
+            // Also create credentials file
+            writeCredentialsExcel("data/student_credentials.xlsx", students);
+            MenuUtils::printSuccess("Excel files created successfully!");
             return true;
         }
 
@@ -232,7 +304,6 @@ bool ExcelUtils::validateExcelFormat(const std::string& filename) {
         wb.load(filename);
         xlnt::worksheet ws = wb.active_sheet();
 
-        // Check if file has expected headers
         auto expectedHeaders = getExcelHeaders();
         for (size_t i = 0; i < expectedHeaders.size() && i < 10; ++i) { // Check first 10 headers
             try {
@@ -253,11 +324,42 @@ bool ExcelUtils::validateExcelFormat(const std::string& filename) {
     }
 }
 
+// NEW: Helper method to load credentials from separate file
+void ExcelUtils::loadCredentialsFromFile(const std::string& credFilename, std::map<std::string, std::pair<std::string, std::string>>& credentialsMap) {
+    try {
+        if (!fileExists(credFilename)) {
+            return; // No credentials file exists
+        }
+
+        xlnt::workbook wb;
+        wb.load(credFilename);
+        xlnt::worksheet ws = wb.active_sheet();
+
+        // Skip header row and read credentials
+        for (int rowNum = 2; rowNum <= static_cast<int>(ws.highest_row()); ++rowNum) {
+            try {
+                string studentId = ws.cell(xlnt::cell_reference(1, rowNum)).to_string();
+                string username = ws.cell(xlnt::cell_reference(3, rowNum)).to_string(); // Username is column 3
+                string password = ws.cell(xlnt::cell_reference(4, rowNum)).to_string(); // Password is column 4
+                
+                if (!studentId.empty() && !username.empty() && !password.empty()) {
+                    credentialsMap[studentId] = make_pair(username, password);
+                }
+            } catch (...) {
+                // Skip invalid rows
+                continue;
+            }
+        }
+        
+    } catch (const exception& e) {
+        MenuUtils::printWarning("Could not load credentials from " + credFilename + ": " + e.what());
+    }
+}
+
 // Utility methods
 std::string ExcelUtils::generateTimestampFilename(const std::string& baseFilename) {
     string timestamp = getCurrentTimestamp();
     
-    // Replace spaces and colons with underscores for filename safety
     for (char& c : timestamp) {
         if (c == ' ' || c == ':') {
             c = '_';
@@ -284,10 +386,10 @@ bool ExcelUtils::fileExists(const std::string& filename) {
     return std::filesystem::exists(filename);
 }
 
-// FIXED: Updated headers to include username and password
+// Updated headers WITHOUT username and password (for main Excel files)
 std::vector<std::string> ExcelUtils::getExcelHeaders() {
     vector<string> headers = {
-        "Username", "Password", "Student ID", "Name", "Age", "Gender", "Date of Birth", "Email"
+        "Student ID", "Name", "Age", "Gender", "Date of Birth", "Email"
     };
     
     // Add subject headers
@@ -302,6 +404,13 @@ std::vector<std::string> ExcelUtils::getExcelHeaders() {
     return headers;
 }
 
+// Headers for credentials file ONLY
+std::vector<std::string> ExcelUtils::getCredentialHeaders() {
+    return {
+        "Student ID", "Name", "Username", "Password", "Email", "Created Date"
+    };
+}
+
 // Helper methods for Excel formatting
 void ExcelUtils::formatExcelHeader(xlnt::worksheet& ws) {
     auto headers = getExcelHeaders();
@@ -311,16 +420,12 @@ void ExcelUtils::formatExcelHeader(xlnt::worksheet& ws) {
     }
 }
 
-// FIXED: Updated to write username and password to Excel
+// Write student data WITHOUT username and password
 void ExcelUtils::writeStudentToExcel(xlnt::worksheet& ws, const Student& student, int row) {
     int col = 1;
     
     try {
-        // CRITICAL FIX: Write username and password FIRST
-        ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getUsername());
-        ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getPassword());
-        
-        // Then write basic information
+        // Write basic information (NO username/password)
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getStudentId());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getName());
         ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).value(student.getAge());
@@ -346,34 +451,19 @@ void ExcelUtils::writeStudentToExcel(xlnt::worksheet& ws, const Student& student
     }
 }
 
-// FIXED: Updated to read username and password from Excel
+// Read student data (credentials will be empty from main Excel files)
 Student ExcelUtils::readStudentFromExcel(xlnt::worksheet& ws, int row) {
     int col = 1;
     
     try {
-        // CRITICAL FIX: Read username and password FIRST
-        string username = "";
-        string password = "";
+        // Note: No username/password in main Excel files, so they'll be empty initially
+        string username = "";  // Will be set later from credentials file
+        string password = "";  // Will be set later from credentials file
         
-        try {
-            username = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), row)).to_string();
-        } catch (...) {
-            username = ""; // Default to empty if not found
-        }
-        col++;
-        
-        try {
-            password = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), row)).to_string();
-        } catch (...) {
-            password = ""; // Default to empty if not found
-        }
-        col++;
-        
-        // Read basic information with safe string conversion
+        // Read basic information
         string studentId = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).to_string();
         string name = ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col++), row)).to_string();
         
-        // Safe integer conversion
         int age = 20; // default
         try {
             age = static_cast<int>(ws.cell(xlnt::cell_reference(static_cast<xlnt::column_t>(col), row)).value<double>());
@@ -398,7 +488,7 @@ Student ExcelUtils::readStudentFromExcel(xlnt::worksheet& ws, int row) {
             }
         }
         
-        // CRITICAL FIX: Create student object WITH username and password from Excel
+        // Create student WITHOUT credentials (they'll be set from credentials file)
         Student student(username, password, studentId, name, age, gender, dateOfBirth, email, scores);
         student.updateAllGrades(); // Ensure grades are calculated
         return student;
