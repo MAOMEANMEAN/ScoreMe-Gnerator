@@ -98,10 +98,15 @@ void Admin::showMenuWithData(std::vector<Student>& students) {
         
         // Show current data status
         if (!students.empty()) {
-            MenuUtils::printInfo("📊 Current database: " + to_string(students.size()) + " students loaded");
+            string studentStatus = "📊 Current database: " + to_string(students.size()) + " students loaded";
+            cout << string(25, ' ');
+            MenuUtils::printSuccess(studentStatus);
         } else {
-            MenuUtils::printWarning("📊 No student data loaded - consider importing from Excel file");
+            string studentStatus = "📊 No student data loaded - consider importing from Excel file";
+            cout << string(15, ' ');
+            MenuUtils::printWarning(studentStatus);
         }
+        cout << endl;
         
         choice = MenuUtils::getMenuChoice(5);
         
@@ -109,28 +114,23 @@ void Admin::showMenuWithData(std::vector<Student>& students) {
             case 1:
                 manageStudents(students);
                 break;
-                
             case 2: {
+                MenuUtils::clearScreen();  // Clear screen when entering import section
                 // Enhanced import with multiple options
-                // MenuUtils::clearScreen();
-                // MenuUtils::printImportInstructions();
-                // MenuUtils::pauseScreen();
-                
-                // Show additional import options
                 std::vector<std::string> importMainOptions = {
                     "Import Excel File (Browse Computer)",
                     "Show Recent Files",
                     "Back to Admin Menu"
                 };
-                
                 MenuUtils::printMenu(importMainOptions);
                 int importChoice = MenuUtils::getMenuChoice(3);
-                
                 switch (importChoice) {
                     case 1:
+                        MenuUtils::clearScreen();  // Clear screen before file import
                         importExcelData(students, "data/students.xlsx");
                         break;
                     case 2:
+                        MenuUtils::clearScreen();  // Clear screen before showing files
                         showRecentFiles();
                         MenuUtils::pauseScreen();
                         break;
@@ -143,7 +143,6 @@ void Admin::showMenuWithData(std::vector<Student>& students) {
                 }
                 break;
             }
-            
             case 3:
                 exportData(students, "data/grade_report.xlsx");
                 MenuUtils::pauseScreen();
@@ -308,6 +307,7 @@ std::string Admin::openFileDialog() {
 
 // NEW: Enhanced method to show recent files
 void Admin::showRecentFiles() {
+    MenuUtils::printHeader("RECENT FILES & LOCATIONS");
     MenuUtils::printInfo("Common Excel file locations:");
     MenuUtils::printInfo("• Desktop: ~/Desktop/ or %USERPROFILE%\\Desktop\\");
     MenuUtils::printInfo("• Downloads: ~/Downloads/ or %USERPROFILE%\\Downloads\\");
@@ -324,6 +324,7 @@ void Admin::showRecentFiles() {
 #endif
     
     system(command.c_str());
+    cout << endl;
 }
 
 // Admin-specific methods
@@ -797,6 +798,7 @@ void Admin::importExcelData(std::vector<Student>& students, const std::string& d
             }
         }
     }
+    cout << endl;
 }
 
 void Admin::exportData(const std::vector<Student>& students, const std::string& filename) {
