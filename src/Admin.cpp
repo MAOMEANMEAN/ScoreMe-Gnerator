@@ -194,30 +194,21 @@ void Admin::reorderStudentIds(std::vector<Student>& students) {
     for (size_t i = 0; i < students.size(); ++i) {
         int newIdNum = static_cast<int>(i + 1);
         string newId = "STU" + string(3 - to_string(newIdNum).length(), '0') + to_string(newIdNum);
-        
-        // Find the student in the vector and update their ID
-        // Note: This requires a setStudentId method in the Student class
-        // If this method doesn't exist, you'll need to add it to Student.hpp
         students[i].setStudentId(newId);
     }
 }
 
-// UPDATED: Generate next sequential Student ID
 std::string Admin::generateNextStudentId(const std::vector<Student>& students) {
-    // Simply use the next number in sequence
     int nextId = static_cast<int>(students.size()) + 1;
     
-    // Generate ID with proper formatting (STU001, STU002, etc.)
     string nextIdStr = "STU" + string(3 - to_string(nextId).length(), '0') + to_string(nextId);
     return nextIdStr;
 }
 
-// Gmail validation function
 bool Admin::isValidGmail(const std::string& email) {
     return email.find("gmail.com") != string::npos;
 }
 
-// Save credentials to separate Excel file
 void Admin::saveCredentialsToExcel(const std::vector<Student>& students) {
     try {
         ExcelUtils::writeCredentialsExcel("data/student_credentials.xlsx", students);
@@ -227,7 +218,6 @@ void Admin::saveCredentialsToExcel(const std::vector<Student>& students) {
     }
 }
 
-// NEW: File dialog implementation
 std::string Admin::openFileDialog() {
 #ifdef _WIN32
     // Windows file dialog
@@ -299,13 +289,11 @@ std::string Admin::openFileDialog() {
         }
     }
     
-    // Fallback: ask user to enter path manually
     MenuUtils::printWarning("File dialog not available. Please enter the file path manually.");
     return MenuUtils::getStringInput("Enter full path to Excel file: ");
 #endif
 }
 
-// NEW: Enhanced method to show recent files
 void Admin::showRecentFiles() {
     MenuUtils::printHeader("RECENT FILES & LOCATIONS");
     MenuUtils::printInfo("Common Excel file locations:");
@@ -313,8 +301,6 @@ void Admin::showRecentFiles() {
     MenuUtils::printInfo("• Downloads: ~/Downloads/ or %USERPROFILE%\\Downloads\\");
     MenuUtils::printInfo("• Documents: ~/Documents/ or %USERPROFILE%\\Documents\\");
     MenuUtils::printInfo("• Current directory: ./");
-    
-    // Show existing data directory files
     MenuUtils::printInfo("\nFiles in data directory:");
     
 #ifdef _WIN32
@@ -327,7 +313,6 @@ void Admin::showRecentFiles() {
     cout << endl;
 }
 
-// Admin-specific methods
 void Admin::manageStudents(std::vector<Student>& students) {
     int choice;
     do {
@@ -392,7 +377,6 @@ void Admin::viewAllStudents(const std::vector<Student>& students) {
 void Admin::addNewStudent(std::vector<Student>& students) {
     MenuUtils::printHeader("ADD NEW STUDENT");
     
-    // Generate next sequential Student ID
     string studentId = generateNextStudentId(students);
     MenuUtils::printInfo("Auto-generated Student ID : " + studentId);
     
@@ -409,7 +393,6 @@ void Admin::addNewStudent(std::vector<Student>& students) {
     string gender = MenuUtils::getStringInput("Gender : ");
     string dob = MenuUtils::getStringInput("Date of Birth (YYYY-MM-DD) : ");
     
-    // Gmail validation
     string email;
     do {
         email = MenuUtils::getStringInput("Gmail : ");
@@ -430,13 +413,11 @@ void Admin::addNewStudent(std::vector<Student>& students) {
         }
     }
     
-    // Create student with auto-generated ID and login credentials
     students.emplace_back(username, password, studentId, name, age, gender, dob, email, scores);
     MenuUtils::printSuccess("Student added successfully!");
     MenuUtils::printInfo("Student ID: " + studentId);
     MenuUtils::printInfo("Login credentials - Username : " + username + ", Password : " + password);
     
-    // Save updated data to Excel immediately
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
         saveCredentialsToExcel(students);
@@ -526,7 +507,6 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
     if (choice != 7) {
         MenuUtils::printSuccess("Student information updated successfully!");
         
-        // Save updated data to Excel
         try {
             ExcelUtils::writeExcel("data/students.xlsx", students);
             saveCredentialsToExcel(students);
@@ -537,7 +517,6 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
     }
 }
 
-// UPDATED: Delete student with ID reordering
 void Admin::deleteStudent(std::vector<Student>& students) {
     MenuUtils::printHeader("DELETE STUDENT");
     
@@ -554,19 +533,16 @@ void Admin::deleteStudent(std::vector<Student>& students) {
             // Remove the student
             students.erase(it);
             
-            // Reorder all student IDs to maintain sequential numbering
             reorderStudentIds(students);
             
             MenuUtils::printSuccess("Student deleted successfully!");
             MenuUtils::printInfo("All student IDs have been reordered to maintain sequence.");
             
-            // Show updated student list
             if (!students.empty()) {
                 MenuUtils::printInfo("Updated student list:");
                 MenuUtils::displayTable(students);
             }
             
-            // Save updated data to Excel
             try {
                 ExcelUtils::writeExcel("data/students.xlsx", students);
                 saveCredentialsToExcel(students);
@@ -642,7 +618,6 @@ void Admin::sortStudentsByScore(std::vector<Student>& students) {
     MenuUtils::printInfo("Student IDs have been reordered to maintain sequence.");
     MenuUtils::displayTable(students);
     
-    // Save sorted data to Excel
     try {
         ExcelUtils::writeExcel("data/students.xlsx", students);
         saveCredentialsToExcel(students);
@@ -652,11 +627,9 @@ void Admin::sortStudentsByScore(std::vector<Student>& students) {
     }
 }
 
-// ENHANCED: importExcelData with file dialog support
 void Admin::importExcelData(std::vector<Student>& students, const std::string& defaultFilename) {
     MenuUtils::printHeader("IMPORT EXCEL DATA");
     
-    // Show import options
     vector<string> importOptions = {
         "Browse and Select File from Computer",
         "Use Default File (data/students.xlsx)",

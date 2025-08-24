@@ -53,14 +53,14 @@ void MenuUtils::showLoadingAnimation(const std::string& message, int duration) {
     cout << string(25, ' ') << "Loading: [";
     
     // Progress bar animation
-    for (int i = 0; i <= 20; i++) {
-        if (i <= 20) {
+    for (int i = 0; i <= 35; i++) {
+        if (i <= 35) {
             cout << GREEN << "█" << RESET;
         }
         cout.flush();
         
         #ifdef _WIN32
-            Sleep(duration / 20);
+            Sleep(duration / 35);
         #else
             usleep((duration * 1000) / 20);
         #endif
@@ -69,7 +69,7 @@ void MenuUtils::showLoadingAnimation(const std::string& message, int duration) {
     cout << "] " << GREEN << "100%" << RESET << endl;
     
     // Success message
-    cout << endl << string(20, ' ') << GREEN << "✅ Login Successful! ✅" << RESET << endl;
+    cout << endl << string(25, ' ') << GREEN << "✅ Login Successful! ✅" << RESET << endl;
     
     #ifdef _WIN32
         Sleep(1500);
@@ -699,7 +699,7 @@ std::string MenuUtils::getHiddenInput(const std::string& prompt) {
 
 bool MenuUtils::askContinue() {
     string response;
-    cout << YELLOW << "Do you want to continue? (Y/N): " << RESET;
+    cout << string(35, ' ') << YELLOW << "Do you want to continue? (Y/N): " << RESET;
     getline(cin, response);
     
     return (response == "Y" || response == "y" || response == "yes" || response == "Yes");
