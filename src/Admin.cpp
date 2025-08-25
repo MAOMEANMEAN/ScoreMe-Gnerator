@@ -3,9 +3,10 @@
 #include "ExcelUtil.hpp"
 #include "GradeUtil.hpp"
 #include <iostream>
-#include <algorithm>  // Make sure this is included
+#include <algorithm>
 #include <fstream>
 #include <set>
+#include <cctype>
 
 // Add these includes for file dialog
 #ifdef _WIN32
@@ -137,10 +138,6 @@ void Admin::showMenuWithData(std::vector<Student>& students) {
                     case 3:
                         break; // Back to admin menu
                 }
-                
-                if (importChoice != 3) {
-                    MenuUtils::pauseScreen();
-                }
                 break;
             }
             case 3:
@@ -170,7 +167,7 @@ std::string Admin::getRole() const {
     return "Administrator";
 }
 
-// NEW: Function to reorder all student IDs sequentially
+// Function to reorder all student IDs sequentially
 void Admin::reorderStudentIds(std::vector<Student>& students) {
     // Sort students by current ID to maintain some order
     sort(students.begin(), students.end(),
@@ -380,7 +377,13 @@ void Admin::addNewStudent(std::vector<Student>& students) {
     string studentId = generateNextStudentId(students);
     MenuUtils::printInfo("Auto-generated Student ID : " + studentId);
     
-    string name = MenuUtils::getStringInput("Student Name : ");
+    string name;
+    do {
+        name = MenuUtils::getStringInput("Student Name : ");
+        if (!isValidName(name)) {
+            MenuUtils::printError("Invalid name! Name cannot be empty and should only contain letters and spaces.");
+        }
+    } while (!isValidName(name));
     if (isStudentExists(name, students)) {
         MenuUtils::printError("Student with this name already exists!");
         return;
@@ -389,9 +392,27 @@ void Admin::addNewStudent(std::vector<Student>& students) {
     string username = MenuUtils::getStringInput("Username for login : ");
     string password = MenuUtils::getStringInput("Password for login : ");
     
-    int age = MenuUtils::getIntInput("Age : ");
-    string gender = MenuUtils::getStringInput("Gender : ");
-    string dob = MenuUtils::getStringInput("Date of Birth (YYYY-MM-DD) : ");
+    int age;
+    do {
+        age = MenuUtils::getIntInput("Age : ");
+        if (age < 18 || age > 25) {
+            MenuUtils::printError("Invalid age! Age must be between 18 and 25.");
+        }
+    } while (age < 18 || age > 25);
+    string gender;
+    do {
+        gender = MenuUtils::getStringInput("Gender : ");
+        if (!isValidGender(gender)) {
+            MenuUtils::printError("Invalid gender! Please enter Male or Female.");
+        }
+    } while (!isValidGender(gender));
+    string dob;
+    do {
+        dob = MenuUtils::getStringInput("Date of Birth (YYYY-MM-DD) : ");
+        if (!isValidDate(dob)) {
+            MenuUtils::printError("Invalid date format! Please use YYYY-MM-DD format.");
+        }
+    } while (!isValidDate(dob));
     
     string email;
     do {
@@ -456,22 +477,46 @@ void Admin::editStudentInfo(std::vector<Student>& students) {
     
     switch (choice) {
         case 1: {
-            string newName = MenuUtils::getStringInput("New name : ");
+            string newName;
+            do {
+                newName = MenuUtils::getStringInput("New name : ");
+                if (!isValidName(newName)) {
+                    MenuUtils::printError("Invalid name! Name cannot be empty and should only contain letters and spaces.");
+                }
+            } while (!isValidName(newName));
             student->setName(newName);
             break;
         }
         case 2: {
-            int newAge = MenuUtils::getIntInput("New age : ");
+            int newAge;
+            do {
+                newAge = MenuUtils::getIntInput("New age : ");
+                if (newAge < 18 || newAge > 25) {
+                    MenuUtils::printError("Invalid age! Age must be between 18 and 25.");
+                }
+            } while (newAge < 18 || newAge > 25);
             student->setAge(newAge);
             break;
         }
         case 3: {
-            string newGender = MenuUtils::getStringInput("New gender : ");
+            string newGender;
+            do {
+                newGender = MenuUtils::getStringInput("New gender : ");
+                if (!isValidGender(newGender)) {
+                    MenuUtils::printError("Invalid gender! Please enter Male or Female.");
+                }
+            } while (!isValidGender(newGender));
             student->setGender(newGender);
             break;
         }
         case 4: {
-            string newDob = MenuUtils::getStringInput("New date of birth (YYYY-MM-DD) : ");
+            string newDob;
+            do {
+                newDob = MenuUtils::getStringInput("New date of birth (YYYY-MM-DD) : ");
+                if (!isValidDate(newDob)) {
+                    MenuUtils::printError("Invalid date format! Please use YYYY-MM-DD format.");
+                }
+            } while (!isValidDate(newDob));
             student->setDateOfBirth(newDob);
             break;
         }
@@ -597,33 +642,70 @@ void Admin::showFailingStudents(const std::vector<Student>& students) {
 void Admin::sortStudentsByScore(std::vector<Student>& students) {
     MenuUtils::printHeader("SORT STUDENTS BY SCORE");
     
-    string order = MenuUtils::getStringInput("Sort order (asc/desc): ");
+    if (students.empty()) {
+        MenuUtils::printWarning("No students to sort!");
+        return;
+    }
     
+    string order;
+    bool validInput = false;
+    
+    // Keep asking until valid input is provided
+    do {
+        order = MenuUtils::getStringInput("Sort order (asc/desc): ");
+        
+        // Convert to lowercase for comparison
+        transform(order.begin(), order.end(), order.begin(), ::tolower);
+        
+        if (order == "asc" || order == "ascending" || order == "a") {
+            order = "asc";
+            validInput = true;
+        } else if (order == "desc" || order == "descending" || order == "d") {
+            order = "desc";
+            validInput = true;
+        } else {
+            MenuUtils::printError("Invalid input! Please enter 'asc' for ascending or 'desc' for descending.");
+        }
+    } while (!validInput);
+    
+    // Show original data first
+    MenuUtils::printInfo("Original order:");
+    MenuUtils::displayTable(students);
+    cout << endl;
+    
+    // Perform the sorting
     if (order == "asc") {
+        MenuUtils::printInfo("Sorting in ASCENDING order (lowest to highest score)...");
         sort(students.begin(), students.end(),
             [](const Student& a, const Student& b) {
                 return a.getAverageScore() < b.getAverageScore();
             });
     } else {
+        MenuUtils::printInfo("Sorting in DESCENDING order (highest to lowest score)...");
         sort(students.begin(), students.end(),
             [](const Student& a, const Student& b) {
                 return a.getAverageScore() > b.getAverageScore();
             });
     }
     
-    // After sorting, reorder IDs to maintain sequence
-    reorderStudentIds(students);
-    
     MenuUtils::printSuccess("Students sorted successfully!");
-    MenuUtils::printInfo("Student IDs have been reordered to maintain sequence.");
+    MenuUtils::printInfo("Sorted order:");
     MenuUtils::displayTable(students);
-    
-    try {
-        ExcelUtils::writeExcel("data/students.xlsx", students);
-        saveCredentialsToExcel(students);
-        MenuUtils::printInfo("Sorted data saved to Excel files.");
-    } catch (const exception& e) {
-        MenuUtils::printWarning("Students sorted but failed to save to Excel: " + string(e.what()));
+
+    // Ask if user wants to save the sorted data
+    string saveChoice = MenuUtils::getStringInput("Save sorted data to Excel? (y/n): ");
+    if (saveChoice == "y" || saveChoice == "Y") {
+        try {
+            // After sorting, reorder IDs to maintain sequence only if saving
+            reorderStudentIds(students);
+            MenuUtils::printInfo("Student IDs have been reordered to maintain sequence.");
+            
+            ExcelUtils::writeExcel("data/students.xlsx", students);
+            saveCredentialsToExcel(students);
+            MenuUtils::printInfo("Sorted data saved to Excel files.");
+        } catch (const exception& e) {
+            MenuUtils::printWarning("Students sorted but failed to save to Excel: " + string(e.what()));
+        }
     }
 }
 
@@ -724,7 +806,6 @@ void Admin::importExcelData(std::vector<Student>& students, const std::string& d
             if (!students.empty()) {
                 MenuUtils::printInfo("Preview of imported data (first 5 students):");
                 vector<Student> preview;
-                // FIXED LINE 799 - using safer alternative to std::min
                 int previewCount = (students.size() < 5) ? static_cast<int>(students.size()) : 5;
                 for (int i = 0; i < previewCount; i++) {
                     preview.push_back(students[i]);
@@ -866,4 +947,37 @@ Student* Admin::findStudentByName(std::vector<Student>& students, const std::str
     auto it = find_if(students.begin(), students.end(),
         [&name](const Student& s) { return s.getName() == name; });
     return (it != students.end()) ? &(*it) : nullptr;
+}
+
+bool Admin::isValidName(const std::string& name) {
+    if (name.empty()) return false;
+    for (char c : name) {
+        if (!std::isalpha(c) && c != ' ') return false;
+    }
+    return true;
+}
+
+bool Admin::isValidGender(const std::string& gender) {
+    std::string lowerGender = gender;
+    std::transform(lowerGender.begin(), lowerGender.end(), lowerGender.begin(), ::tolower);
+    return (lowerGender == "male" || lowerGender == "female" || lowerGender == "other");
+}
+
+bool Admin::isValidDate(const std::string& date) {
+    if (date.length() != 10) return false;
+    if (date[4] != '-' || date[7] != '-') return false;
+    
+    try {
+        int year = std::stoi(date.substr(0, 4));
+        int month = std::stoi(date.substr(5, 2));
+        int day = std::stoi(date.substr(8, 2));
+        
+        if (year < 1900 || year > 2024) return false;
+        if (month < 1 || month > 12) return false;
+        if (day < 1 || day > 31) return false;
+        
+        return true;
+    } catch (...) {
+        return false;
+    }
 }

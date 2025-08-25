@@ -11,7 +11,7 @@ private:
     std::string gender;
     std::string dateOfBirth;
     std::string email;
-    std::vector<double> subjectScores; // 7 subjects
+    std::vector<double> subjectScores; 
     double averageScore;
     std::string letterGrade;
     double gpa;

@@ -324,7 +324,7 @@ bool ExcelUtils::validateExcelFormat(const std::string& filename) {
     }
 }
 
-// NEW: Helper method to load credentials from separate file
+// method to load credentials from separate file
 void ExcelUtils::loadCredentialsFromFile(const std::string& credFilename, std::map<std::string, std::pair<std::string, std::string>>& credentialsMap) {
     try {
         if (!fileExists(credFilename)) {

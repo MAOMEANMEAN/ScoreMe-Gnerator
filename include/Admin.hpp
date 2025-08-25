@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Person.hpp"
 #include "Student.hpp"
 #include <vector>
@@ -38,11 +37,13 @@ public:
     // NEW: File dialog and template methods
     std::string openFileDialog();
     void showRecentFiles();
-    void createImportTemplate();
     
     // Enhanced functionality methods
     std::string generateNextStudentId(const std::vector<Student>& students);
     bool isValidGmail(const std::string& email);
+    bool isValidName(const std::string& name);
+    bool isValidGender(const std::string& gender);
+    bool isValidDate(const std::string& date);
     void saveCredentialsToExcel(const std::vector<Student>& students);
     void reorderStudentIds(std::vector<Student>& students);
     

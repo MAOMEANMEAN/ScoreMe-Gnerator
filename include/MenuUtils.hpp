@@ -3,7 +3,7 @@
 #include <string>
 #include "Student.hpp"
 
-// Forward declaration for tabulate Color
+
 namespace tabulate {
     enum class Color;
 }
@@ -23,15 +23,12 @@ public:
     static void printAdminMenu();
     static void printStudentMenu();
     
-    // NEW: Enhanced UI methods
+    // Enhanced UI methods
     static void printAdminDashboard();
     static void printStudentDashboard();
     static void printThankYou();
     static void showLoadingAnimation(const std::string& message = "Initializing", int duration = 2000);
-    
-    // NEW: Import instruction method
-    //
-    
+
     // Colored output methods
     static void printColored(const std::string& text, const std::string& color);
     static void printSuccess(const std::string& message);

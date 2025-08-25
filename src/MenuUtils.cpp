@@ -1,6 +1,6 @@
 #include "MenuUtils.hpp"
 #include "GradeUtil.hpp"
-#include "ExcelUtil.hpp" // Added for import instructions
+#include "ExcelUtil.hpp"
 #include <tabulate/table.hpp>
 #include <iostream>
 #include <iomanip>
@@ -27,13 +27,13 @@ const std::string MenuUtils::CYAN = "\033[36m";
 const std::string MenuUtils::WHITE = "\033[37m";
 const std::string MenuUtils::BOLD = "\033[1m";
 
-// ADDED: Helper function to get grade color
+
 Color MenuUtils::getGradeColor(const std::string& grade) {
     if (grade == "A" || grade == "B" || grade == "C") {
         return Color::green;    // A-C: Green (excellent)
     }
     else if (grade == "D" || grade == "E") {
-        return Color::yellow;   // D-E: Orange/Yellow (acceptable)  
+        return Color::yellow;   // D-E: Orange/Yellow (acceptable)
     }
     else if (grade == "F") {
         return Color::red;      // F: Red (failing)
@@ -81,11 +81,9 @@ void MenuUtils::showLoadingAnimation(const std::string& message, int duration) {
 // Enhanced Welcome with USER PORTAL style
 void MenuUtils::printWelcome() {
     system("cls");
-    
-    // Center spacing for console (adjust if needed)
     cout << string(10, '\n'); // Top spacing to center vertically
     
-    // ISTAD PRE-GEN4 with character-by-character animation
+    
     string text = R"(  ██╗███████╗████████╗ █████╗ ██████╗     ██████╗ ██████╗ ███████╗      ██████╗ ███████╗███╗   ██╗██╗  ██╗
   ██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗    ██╔══██╗██╔══██╗██╔════╝     ██╔════╝ ██╔════╝████╗  ██║██║  ██║
   ██║███████╗   ██║   ███████║██║  ██║    ██████╔╝██████╔╝█████╗       ██║  ███╗█████╗  ██╔██╗ ██║███████║
@@ -97,24 +95,20 @@ void MenuUtils::printWelcome() {
     cout << "        "; // Adjust spacing as needed
     
     cout << "\033[94m"; // Blue color
-    
-    // REALLY FAST animation - NO DELAYS AT ALL!
     for (int i = 0; i < text.length(); i++) {
         if (text[i] == '\n') {
             cout << text[i];
             cout << "        "; // Add spacing for next line
-            // NO DELAY FOR LINE BREAKS - INSTANT!
         } else {
             cout << text[i];
             cout.flush();
-            // NO DELAYS FOR ANY CHARACTERS - REALLY FAST!
         }
     }
     cout << "\033[0m" << endl;
     cout << endl;
 
     // Centered loading animation
-    cout << "                                               "; // Center the loading text
+    cout << "                                               "; 
     cout << RED << "Loading";
     
     for (int i = 0; i < 3; i++) {
@@ -143,7 +137,6 @@ void MenuUtils::printWelcome() {
 
     system("cls");
 
-    // Simple welcome message with hash borders (no animation) - CENTERED
     cout << GREEN << endl;
     cout << "                            #############################################################################" << endl;
     cout << "                            #                                                                           #" << endl;
@@ -161,7 +154,6 @@ void MenuUtils::printWelcome() {
         usleep(1000000);
     #endif
 
-    // Animated developer credit - CENTERED
     cout << YELLOW << "                                           ";
     string developer = "Developed by ISTAD Pre-Gen4 GroupI";
     for (int i = 0; i < developer.length(); i++) {
@@ -205,7 +197,6 @@ void MenuUtils::printMainMenu() {
     int menuBoxWidth = 64;
     int centerOffset = (consoleWidth - menuBoxWidth) / 2;
     
-    // Enhanced menu table with cyberpunk styling and colors - FIXED LAYOUT
     cout << string(centerOffset, ' ') << CYAN << "╭────────────────────────────────────────────────────────────────╮" << RESET << endl;
     cout << string(centerOffset, ' ') << CYAN << "│" << RESET << string(27, ' ') << BOLD << WHITE << "Menu Options" << RESET << string(25, ' ') << CYAN << "│" << RESET << endl;
     cout << string(centerOffset, ' ') << CYAN << "├─────┬──────────────────────────────────────────────────────────┤" << RESET << endl;
@@ -243,7 +234,6 @@ void MenuUtils::printMainMenu() {
 void MenuUtils::printAdminDashboard() {
     clearScreen();
     
-    // Admin Dashboard ASCII Art
     cout << string(3, '\n');
     cout << MAGENTA << endl;
     cout << "            █████╗ ██████╗ ███╗   ███╗██╗███╗   ██╗    ██████╗  █████╗ ███████╗██╗  ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ " << endl;
@@ -259,7 +249,6 @@ void MenuUtils::printAdminDashboard() {
 void MenuUtils::printStudentDashboard() {
     clearScreen();
     
-    // STU DASHBOARD ASCII Art
     cout << string(3, '\n');
     cout << BLUE << endl;
     cout << "          ███████╗████████╗██╗   ██╗    ██████╗  █████╗ ███████╗██╗  ██╗██████╗  ██████╗  █████╗ ██████╗ ██████╗ " << endl;
@@ -278,7 +267,6 @@ void MenuUtils::printAdminMenu() {
     int menuBoxWidth = 64;
     int centerOffset = (consoleWidth - menuBoxWidth) / 2;
     
-    // Enhanced menu table with cyberpunk styling and colors - FIXED LAYOUT
     cout << string(centerOffset, ' ') << CYAN << "╭────────────────────────────────────────────────────────────────╮" << RESET << endl;
     cout << string(centerOffset, ' ') << CYAN << "│" << RESET << string(28, ' ') << BOLD << WHITE << "Admin Options" << RESET << string(23, ' ') << CYAN << "│" << RESET << endl;
     cout << string(centerOffset, ' ') << CYAN << "├─────┬──────────────────────────────────────────────────────────┤" << RESET << endl;
@@ -363,11 +351,8 @@ void MenuUtils::printStudentMenu() {
 // Enhanced Thank You Message
 void MenuUtils::printThankYou() {
     clearScreen();
-    
-    // Add vertical spacing
     cout << string(5, '\n');
     
-    // Thank you ASCII art
     cout << CYAN << endl;
     cout << "                ████████╗██╗  ██╗ █████╗ ███╗   ██╗██╗  ██╗    ██╗   ██╗ ██████╗ ██╗   ██╗" << endl;
     cout << "                ╚══██╔══╝██║  ██║██╔══██╗████╗  ██║██║ ██╔╝    ╚██╗ ██╔╝██╔═══██╗██║   ██║" << endl;
@@ -432,24 +417,17 @@ void MenuUtils::displayTable(const std::vector<Student>& students) {
     }
     
     table[0].format().font_style({FontStyle::bold}).font_color(Color::cyan);
-    
-    // Apply color coding based on new grading system
     for (size_t i = 1; i < table.size(); ++i) {
         std::string grade = students[i-1].getLetterGrade();
         std::string remark = students[i-1].getRemark();
-        
-        // Color the entire row based on grade
         Color gradeColor = getGradeColor(grade);
         table[i].format().font_color(gradeColor);
-        
-        // Make failing students more prominent
         if (remark == "Fail") {
             table[i].format().font_style({FontStyle::bold});
         }
     }
     
     cout << table << endl;
-    
     // Display color legend
     printColorLegend();
 }
